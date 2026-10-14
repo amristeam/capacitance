@@ -1,0 +1,992 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Capacitance Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Source+Sans+3:wght@400;600;700&family=STIX+Two+Text:ital,wght@0,400;0,600;1,400;1,600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: fixed topic rail (mirrors the course menu 23.1–23.7 + Summary) beside a single reading column.
+   Each topic = Learn / Simulate / Practise. Colour carries physics meaning: red +Q, blue −Q, amber energy, green progress. */
+:root{
+  --bg:#f1f5f2; --surface:#ffffff; --surface2:#e8eeea; --line:#d3ddd6; --ink:#13201a; --muted:#53645a;
+  --accent:#00d96f; --accent-ink:#00663c; --on-accent:#08210f;
+  --pos:#d9363e; --neg:#2f5fd0; --energy:#c47a00; --good:#0f8a4a; --bad:#c62d3a;
+  --good-bg:#e1f5e9; --bad-bg:#fbe5e7; --note-bg:#e3f6ec; --tip-bg:#e6edfb; --warn-bg:#fdf0d9;
+  --plate:#5b6b62; --diel:#9bb7ff;
+  --f-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --f-body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  --f-math:"STIX Two Text","Cambria Math","Times New Roman",serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0d1511; --surface:#151f1a; --surface2:#1d2a23; --line:#2b3b32; --ink:#e5efe9; --muted:#9bb0a4;
+  --accent:#2ee08a; --accent-ink:#4ee79b; --on-accent:#06210f;
+  --pos:#ff7b80; --neg:#7ea1ff; --energy:#f0b44a; --good:#46d17f; --bad:#ff7b86;
+  --good-bg:#14301f; --bad-bg:#37191d; --note-bg:#12301f; --tip-bg:#1a2644; --warn-bg:#3a2d10;
+  --plate:#9fb0a6; --diel:#3d5fb8; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d1511; --surface:#151f1a; --surface2:#1d2a23; --line:#2b3b32; --ink:#e5efe9; --muted:#9bb0a4;
+  --accent:#2ee08a; --accent-ink:#4ee79b; --on-accent:#06210f;
+  --pos:#ff7b80; --neg:#7ea1ff; --energy:#f0b44a; --good:#46d17f; --bad:#ff7b86;
+  --good-bg:#14301f; --bad-bg:#37191d; --note-bg:#12301f; --tip-bg:#1a2644; --warn-bg:#3a2d10;
+  --plate:#9fb0a6; --diel:#3d5fb8; color-scheme:dark}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font:16px/1.6 var(--f-body);margin:0;padding-inline:0}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent-ink);outline-offset:2px;border-radius:4px}
+h1,h2,h3,h4{font-family:var(--f-display);line-height:1.2;text-wrap:balance;margin:0}
+sub,sup{line-height:0;font-size:.75em}
+.m{font-family:var(--f-math);font-style:italic;font-size:1.06em;white-space:nowrap}
+.u{font-family:var(--f-math);font-style:normal}
+.num{font-variant-numeric:tabular-nums}
+
+.app{display:grid;grid-template-columns:288px minmax(0,1fr);min-height:100vh}
+.side{position:sticky;top:env(safe-area-inset-top,0px);align-self:start;height:100vh;overflow-y:auto;
+  padding:24px 16px;border-right:1px solid var(--line);background:var(--surface);display:flex;flex-direction:column;gap:18px}
+.brand .k{font:600 .72rem/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.brand h1{font-size:1.7rem;margin:8px 0 4px}
+.brand p{margin:0;color:var(--muted);font-size:.9rem}
+.prog{display:flex;align-items:center;gap:10px;font:600 .8rem var(--f-mono);color:var(--muted)}
+.pbar{flex:1;height:8px;border-radius:99px;background:var(--surface2);overflow:hidden}
+.pbar i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+#nav{display:flex;flex-direction:column;gap:6px}
+#nav button{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;
+  background:var(--surface2);font-weight:600;font-size:.95rem;line-height:1.3}
+#nav button:hover{background:var(--line)}
+#nav button:focus-visible{outline:3px solid var(--accent-ink);outline-offset:2px}
+#nav button[aria-current="true"]{background:var(--accent);color:var(--on-accent)}
+#nav .no{font:600 .8rem var(--f-mono);min-width:2.6em}
+#nav .dot{margin-left:auto;width:10px;height:10px;border-radius:50%;border:2px solid var(--muted);flex:none}
+#nav .dot.part{background:linear-gradient(90deg,var(--good) 50%,transparent 50%);border-color:var(--good)}
+#nav .dot.done{background:var(--good);border-color:var(--good)}
+#nav button[aria-current="true"] .dot{border-color:var(--on-accent)}
+#nav button[aria-current="true"] .dot.done{background:var(--on-accent)}
+.side .foot{margin-top:auto;font-size:.8rem;color:var(--muted)}
+
+main{padding:32px clamp(16px,4vw,48px) 72px;min-width:0}
+.wrap{max-width:900px;margin-inline:auto}
+.kick{font:600 .78rem var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent-ink)}
+.ttl{font-size:clamp(1.8rem,4.5vw,2.6rem);margin:6px 0 16px}
+.obj{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin-bottom:20px}
+.obj h4{font:600 .75rem var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.obj ul{margin:0;padding-left:1.1em;display:grid;gap:4px}
+.tabs{display:flex;gap:4px;border-bottom:2px solid var(--line);margin-bottom:24px;overflow-x:auto}
+.tabs button{all:unset;box-sizing:border-box;cursor:pointer;padding:10px 18px;font-weight:700;color:var(--muted);border-bottom:4px solid transparent;margin-bottom:-2px;white-space:nowrap}
+.tabs button:hover{color:var(--ink)}
+.tabs button:focus-visible{outline:3px solid var(--accent-ink);outline-offset:-3px}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+
+.prose{display:grid;gap:14px;max-width:68ch}
+.prose.wide{max-width:none}
+.prose h3{font-size:1.3rem;margin-top:14px}
+.prose p{margin:0}
+.prose ul,.prose ol{margin:0;padding-left:1.3em;display:grid;gap:6px}
+.eq{font-family:var(--f-math);font-size:1.3rem;text-align:center;padding:12px 16px;background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow-x:auto}
+.eq small{display:block;font:400 .85rem var(--f-body);color:var(--muted);margin-top:2px}
+.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;font-size:.92em;line-height:1.15;margin-inline:2px}
+.fr>span:first-child{border-bottom:1px solid currentColor;padding:0 4px 1px}
+.fr>span:last-child{padding:1px 4px 0}
+.note,.tip,.warn{border-radius:10px;padding:12px 16px;display:grid;gap:4px}
+.note{background:var(--note-bg)}
+.tip{background:var(--tip-bg)}
+.warn{background:var(--warn-bg)}
+.note b.h,.tip b.h,.warn b.h{font:600 .72rem var(--f-mono);letter-spacing:.08em;text-transform:uppercase}
+.note b.h{color:var(--accent-ink)} .tip b.h{color:var(--neg)} .warn b.h{color:var(--energy)}
+.tblw{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{padding:10px 14px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+th{font:600 .75rem var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--surface2)}
+tr:last-child td{border-bottom:0}
+details.ex{background:var(--surface);border:1px solid var(--line);border-radius:10px}
+details.ex summary{cursor:pointer;padding:12px 16px;font-weight:700;list-style:none;display:flex;gap:10px;align-items:center}
+details.ex summary::-webkit-details-marker{display:none}
+details.ex summary::before{content:"+";font:600 1.1rem var(--f-mono);color:var(--accent-ink);width:1.2em}
+details.ex[open] summary::before{content:"−"}
+details.ex .body{padding:0 16px 16px;display:grid;gap:8px}
+.go{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.btn{all:unset;box-sizing:border-box;cursor:pointer;padding:9px 16px;border-radius:8px;font-weight:700;background:var(--accent);color:var(--on-accent);text-align:center}
+.btn:hover{filter:brightness(.95)}
+.btn:focus-visible{outline:3px solid var(--accent-ink);outline-offset:2px}
+.btn.ghost{background:var(--surface2);color:var(--ink)}
+.btn.ghost:hover{background:var(--line)}
+.btn[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+
+/* simulations */
+.sim{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;display:grid;gap:16px}
+.sim h3{font-size:1.2rem}
+.sim .lead{margin:0;color:var(--muted);max-width:70ch}
+.sgrid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:20px;align-items:start}
+.ctls{display:grid;gap:14px}
+.ctl{display:grid;gap:4px}
+.ctl label{display:flex;justify-content:space-between;gap:8px;font-weight:600;font-size:.92rem}
+.ctl output{font-family:var(--f-mono);font-size:.85rem;color:var(--accent-ink);font-weight:600}
+input[type=range]{width:100%;accent-color:var(--accent-ink);height:28px}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{all:unset;box-sizing:border-box;cursor:pointer;padding:7px 12px;border-radius:8px;background:var(--surface2);font-weight:600;font-size:.9rem}
+.seg button:hover{background:var(--line)}
+.seg button:focus-visible{outline:3px solid var(--accent-ink);outline-offset:2px}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.canvasbox{border:1px solid var(--line);border-radius:10px;background:var(--bg);overflow:hidden;min-width:0}
+.canvasbox svg,.canvasbox canvas{display:block;width:100%;height:auto}
+.ro{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.ro div{background:var(--surface2);border-radius:10px;padding:10px 12px;min-width:0}
+.ro span{display:block;font:600 .7rem var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.ro b{font:600 1.15rem var(--f-mono);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.ro .hi{background:var(--accent);color:var(--on-accent)} .ro .hi span{color:var(--on-accent);opacity:.8}
+.bars{display:grid;gap:8px}
+.brow{display:grid;grid-template-columns:5.5em minmax(0,1fr) 7.5em;gap:10px;align-items:center;font:600 .85rem var(--f-mono)}
+.brow .tr{height:16px;background:var(--surface2);border-radius:99px;overflow:hidden}
+.brow .tr i{display:block;height:100%;border-radius:99px;transition:width .15s}
+.brow em{font-style:normal;text-align:right;font-variant-numeric:tabular-nums}
+.working{background:var(--surface2);border-radius:10px;padding:12px 16px;font:400 .88rem/1.7 var(--f-mono);overflow-x:auto}
+.working div{white-space:normal;overflow-wrap:anywhere}
+.working b{color:var(--accent-ink)}
+.cmp{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.cmp>div{background:var(--surface2);border-radius:12px;padding:14px 16px;display:grid;gap:6px}
+.cmp h4{font-size:1rem}
+.cmp .big{font:600 1.5rem var(--f-mono)}
+.cmp .rule{font-family:var(--f-math);font-size:1.15rem}
+.hl{background:var(--accent);color:var(--on-accent);border-radius:4px;padding:0 6px}
+
+/* questions */
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.score{font:600 .9rem var(--f-mono);color:var(--muted)}
+.qs{display:grid;gap:16px}
+.q{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 20px;display:grid;gap:12px}
+.q[data-s="right"]{border-color:var(--good)}
+.q[data-s="wrong"]{border-color:var(--bad)}
+.q .qn{font:600 .72rem var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.q .qt{margin:0}
+.opts{display:grid;gap:8px}
+.opt{all:unset;box-sizing:border-box;cursor:pointer;display:flex;gap:12px;padding:10px 14px;border-radius:8px;background:var(--surface2);border:2px solid transparent;line-height:1.4}
+.opt:hover{border-color:var(--line)}
+.opt:focus-visible{outline:3px solid var(--accent-ink);outline-offset:2px}
+.opt b{font:600 .9rem var(--f-mono);color:var(--muted);flex:none;width:1.4em}
+.opt.right{background:var(--good-bg);border-color:var(--good)}
+.opt.wrong{background:var(--bad-bg);border-color:var(--bad)}
+.opts[data-locked="1"] .opt{cursor:default}
+.ans{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.ans input{width:10.5em;padding:9px 12px;border-radius:8px;border:2px solid var(--line);background:var(--bg);font:600 1rem var(--f-mono)}
+.ans input:focus{outline:none;border-color:var(--accent-ink)}
+.ans .unit{font-family:var(--f-math);font-size:1.1rem}
+.fb{border-radius:8px;padding:10px 14px;font-size:.95rem;display:grid;gap:6px}
+.fb.right{background:var(--good-bg)} .fb.wrong{background:var(--bad-bg)} .fb.info{background:var(--surface2)}
+.fb .sol{font-family:var(--f-math);font-size:1.05rem;line-height:1.7}
+.fb .sol div{margin:0}
+.chk{display:grid;gap:10px}
+.chk label{display:flex;gap:12px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;cursor:pointer}
+.chk input{width:20px;height:20px;margin-top:3px;accent-color:var(--accent-ink);flex:none}
+
+@media (max-width:900px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .side{position:static;height:auto;padding:16px;border-right:0;border-bottom:1px solid var(--line);gap:12px}
+  .brand h1{font-size:1.4rem}
+  #nav{flex-direction:row;overflow-x:auto;padding-bottom:6px}
+  #nav button{white-space:nowrap;flex:none}
+  .side .foot{display:none}
+  .sgrid{grid-template-columns:minmax(0,1fr)}
+  .cmp{grid-template-columns:minmax(0,1fr)}
+  .brow{grid-template-columns:4.5em minmax(0,1fr) 6.5em}
+  main{padding-top:20px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+
+<div class="app">
+  <aside class="side">
+    <div class="brand">
+      <span class="k">AS &amp; A Level Physics 9702</span>
+      <h1>23 Capacitance</h1>
+      <p>Interactive module: concepts, simulations and exam-style practice.</p>
+    </div>
+    <div class="prog"><div class="pbar"><i id="pfill"></i></div><span id="ptext">0%</span></div>
+    <nav id="nav" aria-label="Topics"></nav>
+    <div class="foot">Aligned to Cambridge International AS &amp; A Level Physics (9702), Capacitance. Progress is saved in this browser only.</div>
+  </aside>
+  <main id="main" tabindex="-1"></main>
+</div>
+<script>
+"use strict";
+const fr=(a,b)=>`<span class="fr"><span>${a}</span><span>${b}</span></span>`;
+const M=s=>`<span class="m">${s}</span>`;
+const EQ=(s,cap)=>`<div class="eq">${s}${cap?`<small>${cap}</small>`:''}</div>`;
+const NOTE=(h,s)=>`<div class="note"><b class="h">${h}</b><div>${s}</div></div>`;
+const TIP=(s)=>`<div class="tip"><b class="h">Exam technique</b><div>${s}</div></div>`;
+const WARN=(s)=>`<div class="warn"><b class="h">Common mistake</b><div>${s}</div></div>`;
+const EX=(t,s)=>`<details class="ex"><summary>${t}</summary><div class="body">${s}</div></details>`;
+
+const TOPICS=[
+/* ---------------------------------------------------------------- 23.1 */
+{id:'23.1',title:'Capacitors in use',sim:'sim1',
+ obj:['Describe the structure of a capacitor and how it stores charge and energy.',
+      'Define capacitance as C = Q / V and state the farad as 1 C V<sup>−1</sup>.',
+      'Describe uses of capacitors: smoothing, timing, energy storage, blocking d.c.',
+      'Explain how plate area, separation and dielectric affect capacitance (extension).'],
+ learn:`
+ <div class="prose">
+  <h3>Structure and charging</h3>
+  <p>A capacitor consists of two conducting plates separated by an insulator called the <b>dielectric</b> (air, paper, polymer film, ceramic). When the plates are connected to a source, electrons are driven onto the plate joined to the negative terminal and removed from the plate joined to the positive terminal. No charge crosses the dielectric. The plates therefore carry equal and opposite charges, +Q and −Q.</p>
+  <p>The “charge stored” always means the magnitude Q on <em>one</em> plate. The net charge on the whole capacitor is zero.</p>
+  <h3>Definition of capacitance</h3>
+  <p>The p.d. between the plates is directly proportional to the charge on them. The constant of proportionality defines the capacitance.</p>
+  ${EQ(`${M('C')} = ${fr(M('Q'),M('V'))}`,'capacitance = charge on one plate ÷ p.d. across the plates')}
+  ${NOTE('Definition','<b>Capacitance</b> is the charge stored per unit potential difference across the capacitor. Its unit is the <b>farad</b> (F): 1 F = 1 C V<sup>−1</sup>. In practice, capacitors are rated in µF (10<sup>−6</sup> F), nF (10<sup>−9</sup> F) and pF (10<sup>−12</sup> F).')}
+  <h3>What sets the capacitance? (extension)</h3>
+  <p>For two parallel plates of area A and separation d:</p>
+  ${EQ(`${M('C')} = ${fr('ε<sub>0</sub>ε<sub>r</sub>'+M('A'),M('d'))}`,'ε₀ = 8.85 × 10⁻¹² F m⁻¹ ; ε<sub>r</sub> = relative permittivity of the dielectric')}
+  <p>Larger area holds more charge for the same p.d. A smaller gap gives a stronger field for the same p.d., so more charge is drawn onto the plates. A dielectric polarises and partly cancels the field, so more charge is needed to reach the same p.d. The simulation lets you test each of these.</p>
+  <h3>Uses of capacitors</h3>
+  <div class="tblw"><table><thead><tr><th>Use</th><th>Principle</th></tr></thead><tbody>
+   <tr><td>Smoothing (reservoir) in power supplies</td><td>Charges at the voltage peaks and discharges when the rectified voltage falls, reducing ripple.</td></tr>
+   <tr><td>Timing circuits</td><td>Charge or discharge through a resistor takes a time set by RC (topic 23.7).</td></tr>
+   <tr><td>Energy storage</td><td>Camera flash, defibrillator: slow charging, rapid release of energy (topic 23.2).</td></tr>
+   <tr><td>Blocking d.c., passing a.c.</td><td>Steady current cannot cross the dielectric; changing p.d. repeatedly charges and discharges the plates.</td></tr>
+   <tr><td>Tuning circuits</td><td>With an inductor, sets the resonant frequency of radio receivers.</td></tr>
+  </tbody></table></div>
+  ${EX('Worked example: charge on a capacitor',`<p>A 2.2 mF capacitor is connected across a 9.0 V supply. Calculate the charge stored.</p><div class="eq">Q = CV = (2.2 × 10<sup>−3</sup>)(9.0) = 1.98 × 10<sup>−2</sup> C ≈ 20 mC</div>`)}
+  ${WARN('Saying “the capacitor stores charge” without qualification. The capacitor stores <em>separated</em> charge and therefore energy; its net charge is zero. Also, charge does not flow through the dielectric: current flows in the connecting wires only.')}
+ </div>`,
+ qs:[
+  {t:'num',q:'A capacitor stores 120 µC of charge on each plate when the p.d. across it is 6.0 V. Calculate its capacitance.',unit:'µF',ans:20,hint:'Use C = Q / V and keep the µ prefix consistent.',sol:['C = Q / V','C = (120 × 10<sup>−6</sup>) / 6.0 = 2.0 × 10<sup>−5</sup> F','C = 20 µF']},
+  {t:'mcq',q:'A capacitor is charged by a 12 V battery. Which statement about the charges on its plates is correct?',opts:['Both plates carry +Q','The plates carry equal and opposite charges, so the net charge is zero','One plate carries +2Q and the other is neutral','Charge flows through the dielectric from one plate to the other'],ans:1,why:'Electrons are removed from one plate and added to the other. The magnitudes are equal. The dielectric is an insulator, so no charge crosses it.'},
+  {t:'num',q:'A 470 µF capacitor is connected across a 9.0 V supply. Calculate the charge stored on one plate, in mC.',unit:'mC',ans:4.23,hint:'Q = CV. Convert 470 µF to farads first.',sol:['Q = CV','Q = (470 × 10<sup>−6</sup>)(9.0) = 4.23 × 10<sup>−3</sup> C','Q = 4.23 mC']},
+  {t:'num',q:'Two air-spaced parallel plates have area 2.0 × 10<sup>−2</sup> m<sup>2</sup> and separation 0.50 mm. Calculate the capacitance in pF. (ε<sub>0</sub> = 8.85 × 10<sup>−12</sup> F m<sup>−1</sup>)',unit:'pF',ans:354,hint:'C = ε₀A / d with d in metres. Air has ε<sub>r</sub> ≈ 1.',sol:['C = ε<sub>0</sub>A / d','C = (8.85 × 10<sup>−12</sup>)(2.0 × 10<sup>−2</sup>) / (0.50 × 10<sup>−3</sup>)','C = 3.54 × 10<sup>−10</sup> F = 354 pF']},
+  {t:'mcq',q:'The separation of the plates of an isolated parallel-plate capacitor is halved while the area and dielectric stay the same. What happens to its capacitance?',opts:['It halves','It stays the same','It doubles','It quadruples'],ans:2,why:'C = ε₀ε<sub>r</sub>A / d, so C is inversely proportional to d. Halving d doubles C.'}
+ ]},
+/* ---------------------------------------------------------------- 23.2 */
+{id:'23.2',title:'Energy stored in a capacitor',sim:'sim2',
+ obj:['Explain that the work done in charging equals the area under the V–Q graph.',
+      'Use W = ½QV = ½CV² = Q² / 2C.',
+      'Explain why the supply transfers twice the energy that the capacitor stores.'],
+ learn:`
+ <div class="prose">
+  <h3>Work done in charging</h3>
+  <p>Suppose the capacitor already holds charge q, so the p.d. across it is v = q / C. Moving a further small charge Δq onto the plate requires work against this p.d.:</p>
+  ${EQ(`Δ${M('W')} = ${M('v')} Δ${M('q')}`)}
+  <p>This is the area of a thin strip on a graph of p.d. against charge. Because v rises in proportion to q, the V–Q graph is a straight line through the origin. The total work done in charging from 0 to Q is the area of the triangle under the line.</p>
+  ${EQ(`${M('W')} = ½ ${M('Q')}${M('V')}`,'area of triangle = ½ × base × height')}
+  <p>Substituting Q = CV or V = Q / C gives the three equivalent forms:</p>
+  ${EQ(`${M('W')} = ½${M('QV')} = ½${M('CV')}<sup>2</sup> = ${fr(M('Q')+'<sup>2</sup>','2'+M('C'))}`)}
+  ${NOTE('Choosing the form','Use ½CV² when the p.d. is given, Q² / 2C when the charge is fixed (for example an isolated, charged capacitor), and ½QV when you know both. The energy is stored in the electric field between the plates.')}
+  <h3>Where does the other half go?</h3>
+  <p>A battery of e.m.f. V moves a total charge Q round the circuit, so it transfers energy QV. The capacitor stores only ½QV. The remaining ½QV is dissipated as thermal energy in the resistance of the circuit and connecting wires. This is independent of the value of that resistance.</p>
+  ${EX('Worked example: flash unit',`<p>A 4700 µF capacitor is charged to 16 V. Calculate the energy stored.</p><div class="eq">W = ½CV<sup>2</sup> = ½(4.7 × 10<sup>−3</sup>)(16)<sup>2</sup> = 0.60 J</div><p>If this energy were released in 2.0 ms, the mean power would be 0.60 / 0.0020 = 300 W. Capacitors are suited to applications that need a large, brief power output.</p>`)}
+  ${WARN('Using W = QV. That is the energy supplied by the source, not the energy stored. Also note that doubling V quadruples W, because W ∝ V² for a fixed capacitor.')}
+ </div>`,
+ qs:[
+  {t:'num',q:'Calculate the energy stored in a 2200 µF capacitor charged to 12 V, in joules.',unit:'J',ans:0.158,hint:'W = ½CV².',sol:['W = ½CV<sup>2</sup>','W = ½(2200 × 10<sup>−6</sup>)(12)<sup>2</sup>','W = 0.1584 J ≈ 0.16 J']},
+  {t:'num',q:'A capacitor stores 0.50 J of energy when the p.d. across it is 100 V. Calculate its capacitance in µF.',unit:'µF',ans:100,hint:'Rearrange W = ½CV² for C.',sol:['C = 2W / V<sup>2</sup>','C = 2(0.50) / (100)<sup>2</sup> = 1.0 × 10<sup>−4</sup> F','C = 100 µF']},
+  {t:'mcq',q:'The p.d. across a capacitor is doubled. By what factor does the stored energy change?',opts:['×2','×4','×½','×8'],ans:1,why:'W = ½CV². With C fixed, W ∝ V², so doubling V multiplies W by 2² = 4.'},
+  {t:'num',q:'A 100 µF capacitor charged to 50 V is discharged completely through a lamp in 0.20 s. Calculate the mean power dissipated, in watts.',unit:'W',ans:0.625,hint:'First find the stored energy, then divide by the time.',sol:['W = ½CV<sup>2</sup> = ½(100 × 10<sup>−6</sup>)(50)<sup>2</sup> = 0.125 J','P = W / t = 0.125 / 0.20','P = 0.625 W']},
+  {t:'mcq',q:'A capacitor is charged from a battery through a resistor. Compared with the energy stored in the capacitor, the energy supplied by the battery is',opts:['half as much','the same','twice as much','four times as much'],ans:2,why:'The battery supplies QV, the capacitor stores ½QV. The other ½QV is dissipated as thermal energy in the circuit.'}
+ ]},
+/* ---------------------------------------------------------------- 23.3 */
+{id:'23.3',title:'Capacitors in parallel',sim:'sim3',
+ obj:['Derive C = C₁ + C₂ + … for capacitors in parallel.',
+      'State that the p.d. is common and that the charges add.',
+      'Calculate charge, p.d. and energy for capacitors in parallel.'],
+ learn:`
+ <div class="prose">
+  <h3>Derivation</h3>
+  <p>Capacitors connected in parallel are joined between the same two points. The p.d. V across each capacitor is therefore the <b>same</b>. The total charge supplied by the source is the sum of the charges on the individual capacitors.</p>
+  ${EQ(`${M('Q')}<sub>total</sub> = ${M('Q')}<sub>1</sub> + ${M('Q')}<sub>2</sub> + ${M('Q')}<sub>3</sub> = ${M('C')}<sub>1</sub>${M('V')} + ${M('C')}<sub>2</sub>${M('V')} + ${M('C')}<sub>3</sub>${M('V')}`)}
+  <p>Dividing by V gives the combined capacitance:</p>
+  ${EQ(`${M('C')}<sub>total</sub> = ${M('C')}<sub>1</sub> + ${M('C')}<sub>2</sub> + ${M('C')}<sub>3</sub> + …`)}
+  ${NOTE('Key points','Same p.d. across every branch. Charge divides in proportion to capacitance (the larger capacitor holds more charge). The combined capacitance is <b>larger than the largest</b> individual capacitance, because the effective plate area increases.')}
+  ${EX('Worked example',`<p>Capacitors of 1.5 µF and 3.5 µF are connected in parallel across a 10 V supply.</p><div class="eq">C = 1.5 + 3.5 = 5.0 µF<br>Q<sub>1</sub> = 1.5 × 10 = 15 µC, Q<sub>2</sub> = 3.5 × 10 = 35 µC<br>Q<sub>total</sub> = 50 µC = (5.0 µF)(10 V) ✓</div>`)}
+  ${TIP('When a question gives the supply voltage, find each charge directly from Q = CV with the same V. When it gives only the total charge, find V = Q<sub>total</sub> / C<sub>total</sub> first.')}
+ </div>`,
+ qs:[
+  {t:'num',q:'Capacitors of 2.0 µF, 3.0 µF and 5.0 µF are connected in parallel. Calculate the total capacitance in µF.',unit:'µF',ans:10,hint:'Capacitances in parallel simply add.',sol:['C = C<sub>1</sub> + C<sub>2</sub> + C<sub>3</sub>','C = 2.0 + 3.0 + 5.0 = 10 µF']},
+  {t:'num',q:'A 4.0 µF capacitor and a 6.0 µF capacitor are connected in parallel across a 12 V supply. Calculate the total charge stored, in µC.',unit:'µC',ans:120,hint:'Find C<sub>total</sub> first, then use Q = CV.',sol:['C<sub>total</sub> = 4.0 + 6.0 = 10 µF','Q = CV = (10 × 10<sup>−6</sup>)(12) = 1.2 × 10<sup>−4</sup> C','Q = 120 µC (48 µC on the 4.0 µF and 72 µC on the 6.0 µF)']},
+  {t:'mcq',q:'Which quantity is the <em>same</em> for every capacitor connected in parallel?',opts:['Charge','Energy stored','Potential difference','Capacitance'],ans:2,why:'Parallel components are joined across the same two points, so they share one p.d. Charge and energy depend on each capacitance.'},
+  {t:'num',q:'For the capacitors in the second question (4.0 µF and 6.0 µF in parallel across 12 V), calculate the total energy stored, in µJ.',unit:'µJ',ans:720,hint:'Use W = ½CV² with C<sub>total</sub>.',sol:['W = ½C<sub>total</sub>V<sup>2</sup> = ½(10 × 10<sup>−6</sup>)(12)<sup>2</sup>','W = 7.2 × 10<sup>−4</sup> J','W = 720 µJ']},
+  {t:'mcq',q:'A 3.0 µF capacitor is connected in parallel with a 9.0 µF capacitor. The combined capacitance is',opts:['2.25 µF','3.0 µF','9.0 µF','12 µF'],ans:3,why:'C = 3.0 + 9.0 = 12 µF. The combined value in parallel must exceed the largest single capacitance.'}
+ ]},
+/* ---------------------------------------------------------------- 23.4 */
+{id:'23.4',title:'Capacitors in series',sim:'sim4',
+ obj:['Derive 1/C = 1/C₁ + 1/C₂ + … for capacitors in series.',
+      'State that the charge is common and that the p.d.s add.',
+      'Calculate charge, p.d. and energy for capacitors in series.'],
+ learn:`
+ <div class="prose">
+  <h3>Derivation</h3>
+  <p>For capacitors in series, the same charging current flows through each one for the same time, so each carries the <b>same charge Q</b> (the isolated inner plates only separate charge, conserving it). The source p.d. divides between the capacitors.</p>
+  ${EQ(`${M('V')} = ${M('V')}<sub>1</sub> + ${M('V')}<sub>2</sub> + ${M('V')}<sub>3</sub> ⇒ ${fr(M('Q'),M('C'))} = ${fr(M('Q'),M('C')+'<sub>1</sub>')} + ${fr(M('Q'),M('C')+'<sub>2</sub>')} + ${fr(M('Q'),M('C')+'<sub>3</sub>')}`)}
+  <p>Cancelling Q gives the reciprocal rule:</p>
+  ${EQ(`${fr('1',M('C')+'<sub>total</sub>')} = ${fr('1',M('C')+'<sub>1</sub>')} + ${fr('1',M('C')+'<sub>2</sub>')} + ${fr('1',M('C')+'<sub>3</sub>')} + …`)}
+  ${NOTE('Key points','Same charge on each capacitor. The p.d. divides in <em>inverse</em> proportion to capacitance: the smallest capacitor takes the largest share. The total capacitance is <b>smaller than the smallest</b> capacitor, because the effective plate separation increases. For two capacitors: C = C₁C₂ / (C₁ + C₂).')}
+  ${EX('Worked example',`<p>2.0 µF and 8.0 µF capacitors are connected in series across 20 V.</p><div class="eq">C = (2.0 × 8.0) / (2.0 + 8.0) = 1.6 µF<br>Q = CV = (1.6 µF)(20 V) = 32 µC (on each)<br>V<sub>1</sub> = Q / C<sub>1</sub> = 16 V, V<sub>2</sub> = Q / C<sub>2</sub> = 4.0 V<br>Check: 16 + 4.0 = 20 V ✓</div>`)}
+  ${WARN('Forgetting the final reciprocal. Adding 1/C₁ + 1/C₂ gives <em>1/C</em>, not C. Sense-check: the answer must be smaller than the smallest capacitor.')}
+ </div>`,
+ qs:[
+  {t:'num',q:'A 6.0 µF and a 3.0 µF capacitor are connected in series. Calculate the total capacitance in µF.',unit:'µF',ans:2,hint:'1/C = 1/6.0 + 1/3.0, or use product over sum.',sol:['1/C = 1/6.0 + 1/3.0 = 0.1667 + 0.3333 = 0.5000 µF<sup>−1</sup>','C = 2.0 µF']},
+  {t:'num',q:'A 4.0 µF and a 12 µF capacitor are connected in series across a 16 V supply. Calculate the p.d. across the 12 µF capacitor, in volts.',unit:'V',ans:4,hint:'Find C<sub>total</sub> and Q first. Both capacitors carry the same Q.',sol:['C = (4.0 × 12) / (4.0 + 12) = 3.0 µF','Q = CV = (3.0 µF)(16 V) = 48 µC','V<sub>12</sub> = Q / C = 48 / 12 = 4.0 V (and 12 V across the 4.0 µF)']},
+  {t:'mcq',q:'Three identical capacitors, each of capacitance C, are connected in series. The total capacitance is',opts:['3C','C','C / 3','C / 9'],ans:2,why:'1/C<sub>t</sub> = 1/C + 1/C + 1/C = 3/C, so C<sub>t</sub> = C / 3.'},
+  {t:'num',q:'Two identical capacitors in series have a total capacitance of 5.0 µF. Calculate the capacitance of each, in µF.',unit:'µF',ans:10,hint:'For two equal capacitors, C<sub>total</sub> = C / 2.',sol:['1/5.0 = 2/C','C = 2 × 5.0 = 10 µF']},
+  {t:'mcq',q:'Which statement about two capacitors connected in series to a battery is correct?',opts:['They have the same p.d. across them','They store the same charge','They store the same energy','The larger capacitor has the larger p.d. across it'],ans:1,why:'The same charge Q is on each. V = Q/C, so the smaller capacitor has the larger p.d. Energy ½Q²/C is also larger for the smaller capacitor.'}
+ ]},
+/* ---------------------------------------------------------------- 23.5 */
+{id:'23.5',title:'Comparing capacitors and resistors',sim:'sim5',
+ obj:['Compare the combination rules for capacitors and resistors.',
+      'Explain the analogy through conductance, G = 1/R.',
+      'Distinguish energy storage in a capacitor from dissipation in a resistor.'],
+ learn:`
+ <div class="prose wide">
+  <h3>Same mathematics, opposite rules</h3>
+  <p>The combination formulae for capacitors look like those for resistors with series and parallel exchanged. The two sets of rules are consistent once the physical meaning is considered.</p>
+  <div class="tblw"><table><thead><tr><th></th><th>Resistors</th><th>Capacitors</th></tr></thead><tbody>
+   <tr><td>Definition</td><td>R = V / I</td><td>C = Q / V</td></tr>
+   <tr><td>Series</td><td>R = R₁ + R₂ + … (same I, p.d.s add)</td><td>1/C = 1/C₁ + 1/C₂ + … (same Q, p.d.s add)</td></tr>
+   <tr><td>Parallel</td><td>1/R = 1/R₁ + 1/R₂ + … (same V, currents add)</td><td>C = C₁ + C₂ + … (same V, charges add)</td></tr>
+   <tr><td>Depends on</td><td>R = ρL / A</td><td>C = ε₀ε<sub>r</sub>A / d</td></tr>
+   <tr><td>Energy</td><td>Dissipated irreversibly as heat, P = IV = I²R</td><td>Stored in the field, W = ½CV², recoverable on discharge</td></tr>
+  </tbody></table></div>
+  <div class="prose">
+  <h3>Why the rules are exchanged</h3>
+  <p>Compare C = Q / V with the <em>conductance</em> G = I / V = 1 / R. Capacitance relates a “flow” quantity (charge) to p.d., just as conductance relates current to p.d. Conductances add in parallel and combine reciprocally in series. Therefore capacitances (analogous to G) add in parallel and combine reciprocally in series, which is the reverse pattern to resistances.</p>
+  ${NOTE('Memory aid','Quantity that is <b>common</b> in series: current I for resistors, charge Q for capacitors. Quantity common in parallel: p.d. V for both.')}
+  ${TIP('Cambridge questions often present a mixed network and ask for a total value. Reduce parallel and series groups one step at a time, writing the rule used at each step. Do not apply the resistor formula to capacitors.')}
+  ${EX('Worked example',`<p>Find the combined value for (a) 10 Ω and 15 Ω in parallel, and (b) 10 µF and 15 µF in series.</p><div class="eq">(a) R = (10 × 15) / (10 + 15) = 6.0 Ω<br>(b) C = (10 × 15) / (10 + 15) = 6.0 µF</div><p>The arithmetic is identical because both are “reciprocal” combinations.</p>`)}
+  </div>
+ </div>`,
+ qs:[
+  {t:'mcq',q:'The formula for the total capacitance of capacitors in series has the same form as the formula for the total resistance of resistors in',opts:['series','parallel','both series and parallel','neither'],ans:1,why:'1/C = Σ(1/C) for series capacitors has the same form as 1/R = Σ(1/R) for parallel resistors.'},
+  {t:'num',q:'Calculate the total capacitance of a 10 µF and a 15 µF capacitor connected in series, in µF.',unit:'µF',ans:6,hint:'Product over sum.',sol:['C = C<sub>1</sub>C<sub>2</sub> / (C<sub>1</sub> + C<sub>2</sub>)','C = (10)(15) / 25 = 6.0 µF']},
+  {t:'mcq',q:'In which pair is the quantity listed the same for every component in the combination?',opts:['Resistors in series: p.d.; capacitors in series: p.d.','Resistors in series: current; capacitors in series: charge','Resistors in parallel: current; capacitors in parallel: charge','Resistors in parallel: charge; capacitors in series: current'],ans:1,why:'In series, resistors share the same current and capacitors the same charge. In parallel, both share the same p.d.'},
+  {t:'mcq',q:'Which statement correctly contrasts a resistor with a capacitor?',opts:['Both dissipate energy as heat','A resistor stores energy in an electric field; a capacitor dissipates it','A capacitor stores energy that can be recovered; a resistor dissipates energy as thermal energy','Neither transfers energy'],ans:2,why:'The capacitor stores energy ½CV² in its field and can return it. The resistor converts electrical energy irreversibly to thermal energy.'},
+  {t:'num',q:'Two resistors of 4.0 kΩ and 12 kΩ are connected in parallel. Calculate the total resistance, in kΩ.',unit:'kΩ',ans:3,hint:'Product over sum for two resistors in parallel.',sol:['R = (4.0)(12) / (4.0 + 12) = 3.0 kΩ','Compare: 4.0 µF and 12 µF capacitors in <em>series</em> would also give 3.0 µF.']}
+ ]},
+/* ---------------------------------------------------------------- 23.6 */
+{id:'23.6',title:'Capacitor networks',sim:'sim6',
+ obj:['Analyse networks that combine series and parallel capacitors.',
+      'Find the charge, p.d. and energy for each capacitor in a network.'],
+ learn:`
+ <div class="prose">
+  <h3>A systematic method</h3>
+  <p>Treat any network by reduction followed by expansion.</p>
+  <ol>
+   <li>Combine each <b>parallel</b> group into one capacitor by adding capacitances.</li>
+   <li>Combine each <b>series</b> group into one capacitor using the reciprocal rule.</li>
+   <li>Repeat until a single equivalent C remains. Then Q<sub>total</sub> = C V<sub>supply</sub>.</li>
+   <li>Work back outwards. Elements in <b>series</b> share the same Q. Elements in <b>parallel</b> share the same V. Use V = Q / C and Q = CV at each stage.</li>
+  </ol>
+  ${NOTE('Checks that catch errors','The p.d.s around any series path add to the supply p.d. The charges on parallel branches add to the charge on the capacitor they replaced. The energy ½CV² of the equivalent capacitor equals the sum of the energies of all the individual capacitors.')}
+  ${EX('Worked example',`<p>C₁ = 6.0 µF is in series with a parallel pair C₂ = 3.0 µF and C₃ = 6.0 µF, across 15 V.</p>
+  <div class="eq">C<sub>23</sub> = 3.0 + 6.0 = 9.0 µF<br>C = (6.0 × 9.0) / (6.0 + 9.0) = 3.6 µF<br>Q = CV = 3.6 × 15 = 54 µC<br>V<sub>1</sub> = 54 / 6.0 = 9.0 V ⇒ V<sub>23</sub> = 15 − 9.0 = 6.0 V<br>Q<sub>2</sub> = 3.0 × 6.0 = 18 µC, Q<sub>3</sub> = 6.0 × 6.0 = 36 µC (sum = 54 µC ✓)<br>W = ½(3.6 µF)(15 V)² = 405 µJ</div>`)}
+  ${TIP('Redraw the circuit after every reduction. Label each capacitor with its Q and V as you find them, and finish with the two checks above.')}
+ </div>`,
+ qs:[
+  {t:'num',q:'A 2.0 µF and a 4.0 µF capacitor in parallel are connected in series with a 6.0 µF capacitor. Calculate the total capacitance, in µF.',unit:'µF',ans:3,hint:'Parallel pair first: 2.0 + 4.0 = 6.0 µF. Then series with 6.0 µF.',sol:['C<sub>parallel</sub> = 2.0 + 4.0 = 6.0 µF','C = (6.0 × 6.0) / (6.0 + 6.0) = 3.0 µF']},
+  {t:'num',q:'The network in the previous question is connected across a 9.0 V supply. Calculate the charge on the 4.0 µF capacitor, in µC.',unit:'µC',ans:18,hint:'Total Q = CV. The 6.0 µF capacitor carries all of it, so find its p.d., then the p.d. across the parallel pair.',sol:['Q<sub>total</sub> = (3.0 µF)(9.0 V) = 27 µC','V across 6.0 µF = 27 / 6.0 = 4.5 V, so V across the parallel pair = 9.0 − 4.5 = 4.5 V','Q<sub>4.0</sub> = (4.0 µF)(4.5 V) = 18 µC']},
+  {t:'num',q:'A 3.0 µF and a 6.0 µF capacitor are connected in series, and this pair is connected in parallel with a 4.0 µF capacitor. Calculate the total capacitance, in µF.',unit:'µF',ans:6,hint:'Series pair first (product over sum), then add the 4.0 µF.',sol:['C<sub>series</sub> = (3.0 × 6.0) / 9.0 = 2.0 µF','C = 2.0 + 4.0 = 6.0 µF']},
+  {t:'num',q:'The network in the previous question is connected across 10 V. Calculate the total energy stored, in µJ.',unit:'µJ',ans:300,hint:'W = ½CV² with the total capacitance.',sol:['W = ½CV<sup>2</sup> = ½(6.0 × 10<sup>−6</sup>)(10)<sup>2</sup>','W = 3.0 × 10<sup>−4</sup> J = 300 µJ']},
+  {t:'mcq',q:'Four identical capacitors, each of capacitance C, are connected as two parallel pairs joined in series. The total capacitance is',opts:['C / 4','C','2C','4C'],ans:1,why:'Each parallel pair has capacitance 2C. Two 2C capacitors in series give 2C × 2C / (4C) = C.'}
+ ]},
+/* ---------------------------------------------------------------- 23.7 */
+{id:'23.7',title:'Charge and discharge of capacitors',sim:'sim7',
+ obj:['Describe the exponential decay of Q, V and I when a capacitor discharges through a resistor.',
+      'Define the time constant τ = RC and use x = x₀ e<sup>−t/RC</sup>.',
+      'Describe charging through a resistor and use V = V₀(1 − e<sup>−t/RC</sup>).',
+      'Use ln-graphs to determine RC.'],
+ learn:`
+ <div class="prose">
+  <h3>Discharging through a resistor</h3>
+  <p>A capacitor charged to V₀ is connected across a resistor R. At t = 0 the current is I₀ = V₀ / R. As charge leaves the plates the p.d. falls, so the current falls too. The rate of discharge is proportional to the charge remaining, which is the defining property of an exponential decay:</p>
+  ${EQ(`${M('I')} = ${fr('d'+M('Q'),'d'+M('t'))} = −${fr(M('Q'),M('RC'))}`)}
+  <p>The solution applies equally to charge, p.d. and current:</p>
+  ${EQ(`${M('x')} = ${M('x')}<sub>0</sub> e<sup>−${M('t')}/${M('RC')}</sup> &nbsp; (${M('x')} = ${M('Q')}, ${M('V')} or ${M('I')})`)}
+  <h3>The time constant</h3>
+  ${NOTE('Time constant','τ = RC is the time for Q, V or I to fall to 1/e (≈ 0.37) of the initial value. Units: Ω × F = s. A larger R or a larger C slows the discharge. The <b>half-life</b> is t<sub>½</sub> = RC ln 2 ≈ 0.69 RC. After 5τ the value is below 1% of the start.')}
+  <h3>Charging through a resistor</h3>
+  <p>When an uncharged capacitor is connected to a supply of p.d. V₀ through R, the initial current is V₀ / R and the final p.d. is V₀. The charge and p.d. rise, while the current decays:</p>
+  ${EQ(`${M('V')} = ${M('V')}<sub>0</sub>(1 − e<sup>−${M('t')}/${M('RC')}</sup>) , &nbsp; ${M('Q')} = ${M('Q')}<sub>0</sub>(1 − e<sup>−${M('t')}/${M('RC')}</sup>) , &nbsp; ${M('I')} = ${M('I')}<sub>0</sub>e<sup>−${M('t')}/${M('RC')}</sup>`)}
+  <p>After one time constant the capacitor has reached 63% of its final charge. The p.d. across the resistor is V<sub>R</sub> = V₀ − V<sub>C</sub>, which decays exponentially.</p>
+  <h3>Using logarithms</h3>
+  <p>Taking natural logarithms of V = V₀e<sup>−t/RC</sup> gives a straight line:</p>
+  ${EQ(`ln ${M('V')} = ln ${M('V')}<sub>0</sub> − ${fr(M('t'),M('RC'))}`,'gradient of ln V against t = −1/RC')}
+  ${EX('Worked example',`<p>A 220 µF capacitor charged to 6.0 V discharges through 4.7 kΩ.</p><div class="eq">τ = RC = (4.7 × 10<sup>3</sup>)(220 × 10<sup>−6</sup>) = 1.03 s<br>I<sub>0</sub> = V₀ / R = 6.0 / 4700 = 1.28 mA<br>V(2.0 s) = 6.0 e<sup>−2.0/1.034</sup> = 0.87 V<br>t<sub>½</sub> = 0.693 × 1.034 = 0.72 s</div>`)}
+  ${WARN('Treating the current as constant during charging. The current is largest at t = 0 and decays to zero while the p.d. across the capacitor rises. Also, the graphs of Q, V and I during discharge have the <em>same</em> shape; only the scale differs.')}
+ </div>`,
+ qs:[
+  {t:'num',q:'A 220 µF capacitor discharges through a 47 kΩ resistor. Calculate the time constant, in seconds.',unit:'s',ans:10.34,tol:0.04,hint:'τ = RC with both in SI units.',sol:['τ = RC = (47 × 10<sup>3</sup>)(220 × 10<sup>−6</sup>)','τ = 10.34 s ≈ 10 s']},
+  {t:'num',q:'A 1000 µF capacitor charged to 12 V discharges through a 10 kΩ resistor. Calculate the p.d. across the capacitor after 10 s, in volts.',unit:'V',ans:4.41,hint:'τ = RC first. Then V = V₀e<sup>−t/τ</sup>.',sol:['τ = (10 × 10<sup>3</sup>)(1000 × 10<sup>−6</sup>) = 10 s','V = 12 e<sup>−10/10</sup> = 12 e<sup>−1</sup> = 4.41 V']},
+  {t:'num',q:'Calculate the initial discharge current, in mA, for the capacitor in the previous question.',unit:'mA',ans:1.2,hint:'At t = 0 the p.d. across R equals V₀.',sol:['I₀ = V₀ / R = 12 / (10 × 10<sup>3</sup>)','I₀ = 1.2 × 10<sup>−3</sup> A = 1.2 mA']},
+  {t:'num',q:'A capacitor of 100 µF discharges through a 20 kΩ resistor. Calculate the time for the p.d. to fall to half of its initial value, in seconds.',unit:'s',ans:1.39,hint:'t<sub>½</sub> = RC ln 2.',sol:['RC = (20 × 10<sup>3</sup>)(100 × 10<sup>−6</sup>) = 2.0 s','t<sub>½</sub> = RC ln 2 = 2.0 × 0.693 = 1.39 s']},
+  {t:'num',q:'An uncharged 5.0 µF capacitor is charged through a 2.0 MΩ resistor from a 6.0 V cell. Calculate the capacitor p.d. after 20 s, in volts.',unit:'V',ans:5.19,hint:'τ = 10 s. Charging: V = V₀(1 − e<sup>−t/τ</sup>).',sol:['τ = (2.0 × 10<sup>6</sup>)(5.0 × 10<sup>−6</sup>) = 10 s','V = 6.0(1 − e<sup>−2</sup>) = 6.0(1 − 0.1353)','V = 5.19 V']},
+  {t:'mcq',q:'A capacitor is charged through a resistor from a battery. Which statement about the charging current is correct?',opts:['It is constant until the capacitor is full','It starts at zero and rises exponentially','It starts at V₀ / R and decays exponentially to zero','It starts at V₀ / R and decays linearly to zero'],ans:2,why:'Initially the capacitor p.d. is zero so the full e.m.f. is across R. As V<sub>C</sub> rises, V<sub>R</sub> and I fall exponentially.'}
+ ]}
+];
+
+/* ---------------------------------------------------------------- summary */
+const SUMMARY_EQS=[
+ ['Definition of capacitance','C = Q / V','F = C V⁻¹'],
+ ['Parallel plates (extension)','C = ε₀ε<sub>r</sub>A / d','ε₀ = 8.85 × 10⁻¹² F m⁻¹'],
+ ['Energy stored','W = ½QV = ½CV² = Q² / 2C','area under V–Q graph'],
+ ['Capacitors in parallel','C = C₁ + C₂ + …','same V; Q divides'],
+ ['Capacitors in series','1/C = 1/C₁ + 1/C₂ + …','same Q; V divides'],
+ ['Time constant','τ = RC','Ω × F = s'],
+ ['Discharge','x = x₀ e<sup>−t/RC</sup>','x = Q, V or I'],
+ ['Charging','V = V₀(1 − e<sup>−t/RC</sup>), I = I₀ e<sup>−t/RC</sup>','I₀ = V₀ / R'],
+ ['Half-life of decay','t<sub>½</sub> = RC ln 2','≈ 0.693 RC'],
+ ['Straight-line graph','ln V = ln V₀ − t / RC','gradient = −1/RC']
+];
+const CHECKLIST=[
+ 'Define capacitance and the farad, and use C = Q / V.',
+ 'Describe how a capacitor stores charge and energy, and give three uses.',
+ 'Use W = ½QV, ½CV² and Q² / 2C, and sketch a V–Q graph with the area shaded.',
+ 'Derive and use the formula for capacitors in parallel.',
+ 'Derive and use the formula for capacitors in series.',
+ 'Compare capacitor and resistor combinations and explain the analogy.',
+ 'Solve series–parallel networks for C, Q, V and W.',
+ 'Explain and sketch exponential charge and discharge curves for Q, V and I.',
+ 'Use τ = RC, x = x₀ e<sup>−t/RC</sup>, and ln V against t to find RC.'
+];
+const MISTAKES=[
+ ['Mixing up series and parallel rules','Series capacitors: 1/C adds. Parallel capacitors: C adds. Sense-check: series total must be smaller than the smallest; parallel total larger than the largest.'],
+ ['Energy with QV instead of ½QV','½QV is the energy stored. QV is the energy supplied by the source; half of it is dissipated in the circuit.'],
+ ['Units','Convert µF, kΩ and mC to SI before multiplying. RC in Ω × F gives seconds directly.'],
+ ['Reading the time constant','τ is the time to fall to 37% (discharge) or rise to 63% (charge), not the time to finish. The process never strictly completes.'],
+ ['Charging current','The charging current decays; it is the capacitor p.d. that rises.']
+];
+const MIXED=[
+ {t:'num',q:'A 3.0 µF and a 6.0 µF capacitor are connected in series across a 12 V supply. Calculate the charge on the 3.0 µF capacitor, in µC.',unit:'µC',ans:24,hint:'Series capacitors carry the same charge. Find C<sub>total</sub> = 2.0 µF first.',sol:['C = (3.0 × 6.0) / (3.0 + 6.0) = 2.0 µF','Q = CV = (2.0 µF)(12 V) = 24 µC (the same on both capacitors)']},
+ {t:'num',q:'A 470 µF capacitor charged to 6.0 V discharges through a 22 kΩ resistor. Calculate the time taken for the charge on the capacitor to fall to 25% of its initial value, in seconds.',unit:'s',ans:14.3,hint:'τ = RC, then solve 0.25 = e<sup>−t/τ</sup>.',sol:['τ = (22 × 10<sup>3</sup>)(470 × 10<sup>−6</sup>) = 10.34 s','0.25 = e<sup>−t/τ</sup> ⇒ t = τ ln 4 = 10.34 × 1.386','t = 14.3 s']},
+ {t:'num',q:'A 100 µF capacitor charged to 10 V is disconnected from the supply and connected across an uncharged 100 µF capacitor. Calculate the final p.d. across the pair, in volts.',unit:'V',ans:5,hint:'Charge is conserved. The capacitors are now in parallel.',sol:['Q = CV = (100 µF)(10 V) = 1000 µC','C<sub>total</sub> = 200 µF, V = Q / C = 1000 / 200 = 5.0 V','Energy: initial ½(100 µF)(10)² = 5.0 mJ; final ½(200 µF)(5.0)² = 2.5 mJ. Half the energy is dissipated.']},
+ {t:'mcq',q:'Two capacitors, 2.0 µF and 6.0 µF, are first connected in series and then in parallel. The ratio C<sub>parallel</sub> : C<sub>series</sub> is',opts:['4 : 1','5.3 : 1','8 : 1','10.7 : 1'],ans:1,why:'C<sub>parallel</sub> = 2.0 + 6.0 = 8.0 µF. C<sub>series</sub> = (2.0 × 6.0) / 8.0 = 1.5 µF. Ratio = 8.0 / 1.5 = 5.33, which is 5.3 : 1.'},
+ {t:'num',q:'In a discharge experiment the graph of ln V against t is a straight line with gradient −0.20 s<sup>−1</sup>. The capacitance is 500 µF. Calculate the resistance, in kΩ.',unit:'kΩ',ans:10,hint:'Gradient = −1/RC.',sol:['gradient = −1 / RC ⇒ RC = 1 / 0.20 = 5.0 s','R = 5.0 / (500 × 10<sup>−6</sup>) = 1.0 × 10<sup>4</sup> Ω','R = 10 kΩ']},
+ {t:'num',q:'A 4.7 µF capacitor is charged from a 12 V cell through a resistor until fully charged. Calculate the energy stored in the capacitor, in µJ.',unit:'µJ',ans:338,hint:'W = ½CV².',sol:['W = ½CV<sup>2</sup> = ½(4.7 × 10<sup>−6</sup>)(12)<sup>2</sup> = 3.38 × 10<sup>−4</sup> J','W = 338 µJ. The cell supplies QV = 677 µJ; the other 338 µJ is dissipated.']}
+];
+</script>
+<style>
+.sw{stroke:var(--ink);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sp{stroke:var(--plate);fill:none;stroke-width:4;stroke-linecap:butt}
+.sb{stroke:var(--ink);fill:none;stroke-width:3.5}
+.sk{stroke:var(--line);fill:none;stroke-width:1}
+.sd{stroke:var(--muted);fill:none;stroke-width:1.2;stroke-dasharray:4 4}
+.st{fill:var(--ink);font:600 13px var(--f-body)}
+.sm{fill:var(--muted);font:500 11.5px var(--f-mono)}
+.sq{fill:var(--accent-ink);font:600 11.5px var(--f-mono)}
+.fpos{fill:var(--pos)} .fneg{fill:var(--neg)}
+.sfield{stroke:var(--energy);stroke-width:1.6;fill:none}
+</style>
+<script>
+"use strict";
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const h=html=>{const t=document.createElement('template');t.innerHTML=html.trim();return t.content.firstElementChild};
+let store={};
+try{store=JSON.parse(localStorage.getItem('cap9702')||'{}')||{}}catch(e){store={}}
+const save=()=>{try{localStorage.setItem('cap9702',JSON.stringify(store))}catch(e){}};
+
+/* ---------- number formatting ---------- */
+const PRE=[[1e6,'M'],[1e3,'k'],[1,''],[1e-3,'m'],[1e-6,'µ'],[1e-9,'n'],[1e-12,'p']];
+const fmtN=(v,sf=3)=>String(+Number(v).toPrecision(sf));
+function eng(x,u,sf=3){
+  if(!isFinite(x)||x===0)return '0 '+u;
+  const a=Math.abs(x);
+  const p=PRE.find(p=>a>=p[0]*0.99995)||PRE[PRE.length-1];
+  return fmtN(x/p[0],sf)+' '+p[1]+u;
+}
+function sci(x,sf=3){
+  if(x===0)return '0';
+  let e=Math.floor(Math.log10(Math.abs(x))),m=x/Math.pow(10,e);
+  let ms=m.toPrecision(sf);
+  if(parseFloat(ms)>=10){e+=1;ms=(m/10).toPrecision(sf)}
+  return e===0?ms:`${ms} × 10<sup>${e}</sup>`;
+}
+const niceMax=x=>{const e=Math.pow(10,Math.floor(Math.log10(x)));const m=x/e;return e*(m<=1?1:m<=2?2:m<=5?5:10)};
+const SUB=['','₁','₂','₃'];
+const EPS0=8.85e-12;
+
+/* ---------- UI helpers ---------- */
+let uid=0;
+function controls(root,defs,onChange){
+  const st={};
+  defs.forEach(d=>{
+    const id='ctl'+(++uid);
+    const row=h(`<div class="ctl"><label for="${id}"><span>${d.label}</span><output for="${id}"></output></label><input id="${id}" type="range"></div>`);
+    const inp=$('input',row),out=$('output',row);
+    if(d.log){inp.min=0;inp.max=100;inp.step=1;inp.value=Math.round(100*Math.log(d.val/d.min)/Math.log(d.max/d.min))}
+    else{inp.min=d.min;inp.max=d.max;inp.step=d.step;inp.value=d.val}
+    const read=()=>{
+      let v=d.log?d.min*Math.pow(d.max/d.min,inp.value/100):+inp.value;
+      if(d.log)v=+v.toPrecision(2);
+      st[d.k]=v;out.textContent=d.fmt(v);
+    };
+    inp.addEventListener('input',()=>{read();onChange(st)});
+    read();
+    if(d.log&&d.val){st[d.k]=d.val;out.textContent=d.fmt(d.val)}
+    root.appendChild(row);
+  });
+  return st;
+}
+function segment(root,label,opts,init,cb){
+  const wrap=h(`<div class="ctl"><label><span>${label}</span></label><div class="seg"></div></div>`);
+  const box=$('.seg',wrap);const btns=[];
+  const set=v=>{btns.forEach(([b,val])=>b.setAttribute('aria-pressed',String(val===v)))};
+  opts.forEach(([val,text])=>{
+    const b=h(`<button type="button" aria-pressed="false">${text}</button>`);
+    b.addEventListener('click',()=>{set(val);cb(val)});
+    box.appendChild(b);btns.push([b,val]);
+  });
+  set(init);root.appendChild(wrap);
+  return {set,btns,wrap};
+}
+const bars=rows=>`<div class="bars">${rows.map(r=>`<div class="brow"><span>${r.l}</span><div class="tr"><i style="width:${Math.max(0,Math.min(100,r.v/r.max*100))}%;background:${r.c}"></i></div><em>${r.t}</em></div>`).join('')}</div>`;
+const ro=items=>items.map(([l,v,hi])=>`<div${hi?' class="hi"':''}><span>${l}</span><b>${v}</b></div>`).join('');
+const wire=d=>`<path class="sw" d="${d}"/>`;
+const capV=(x,y)=>`<line class="sp" x1="${x-14}" x2="${x+14}" y1="${y-6}" y2="${y-6}"/><line class="sp" x1="${x-14}" x2="${x+14}" y1="${y+6}" y2="${y+6}"/>`;
+const capH=(x,y)=>`<line class="sp" x1="${x-6}" x2="${x-6}" y1="${y-14}" y2="${y+14}"/><line class="sp" x1="${x+6}" x2="${x+6}" y1="${y-14}" y2="${y+14}"/>`;
+const cell=(x,y)=>`<line class="sb" x1="${x-16}" x2="${x+16}" y1="${y}" y2="${y}"/><line class="sb" x1="${x-9}" x2="${x+9}" y1="${y+12}" y2="${y+12}"/><text class="st" x="${x+20}" y="${y-2}">+</text>`;
+
+/* ---------- theme-aware redraw registry ---------- */
+const redraws=new Set();
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>redraws.forEach(f=>f()))}catch(e){}
+new MutationObserver(()=>redraws.forEach(f=>f())).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+let cleanup=()=>{};
+
+/* =============================================================== SIMULATIONS */
+function sim1(root){
+  root.innerHTML=`<h3>Parallel-plate capacitor lab</h3>
+  <p class="lead">The cell sets the p.d. across the plates. Change the geometry and the dielectric and watch the capacitance, and therefore the charge Q = CV, respond. Charge symbols are drawn on a logarithmic scale so that small and large charges both stay visible.</p>
+  <div class="sgrid"><div class="canvasbox"><svg class="sv" viewBox="0 0 520 310" role="img" aria-label="Parallel plate capacitor connected to a cell"></svg></div><div class="ctls"></div></div>
+  <div class="ro"></div><div class="working"></div>`;
+  let er=1,erName='Air';
+  const k=$('.ctls',root),sv=$('.sv',root),r=$('.ro',root),wk=$('.working',root);
+  const st=controls(k,[
+    {k:'V',label:'Supply p.d., V',min:0,max:12,step:0.5,val:9,fmt:v=>v.toFixed(1)+' V'},
+    {k:'A',label:'Plate area, A',min:50,max:400,step:10,val:200,fmt:v=>v+' cm²'},
+    {k:'d',label:'Separation, d',min:0.5,max:5,step:0.1,val:2,fmt:v=>v.toFixed(1)+' mm'}],()=>draw());
+  segment(k,'Dielectric (relative permittivity ε<sub>r</sub>)',[[1,'Air 1'],[2.3,'Polythene 2.3'],[6,'Glass 6'],[50,'Ceramic 50']],1,v=>{er=v;erName={1:'Air',2.3:'Polythene',6:'Glass',50:'Ceramic'}[v];draw()});
+  function draw(){
+    const A=st.A*1e-4,d=st.d*1e-3,V=st.V,C=EPS0*er*A/d,Q=C*V,E=V/d,W=.5*C*V*V;
+    const ph=80+(st.A-50)/350*140,gap=30+(st.d-0.5)/4.5*120,cy=130,x0=260-gap/2,x1=260+gap/2;
+    const top=cy-ph/2,bot=cy+ph/2;
+    let n=Q>0?Math.max(1,Math.min(16,Math.round(2+3*Math.log10(Q/1e-10)))):0;
+    const maxn=Math.floor((ph-16)/13);n=Math.min(n,maxn);
+    let sym='';
+    for(let i=0;i<n;i++){const y=n===1?cy:top+10+i*(ph-20)/(n-1);
+      sym+=`<circle class="fpos" cx="${x0-5}" cy="${y}" r="4.5"/><circle class="fneg" cx="${x1+5}" cy="${y}" r="4.5"/>`}
+    const maxL=Math.max(2,Math.floor(ph/18));
+    const nl=V>0?Math.max(1,Math.round(1+(E/24000)*(maxL-1))):0;
+    let fl='';
+    for(let i=0;i<nl;i++){const y=nl===1?cy:top+14+i*(ph-28)/(nl-1);
+      if(x1-x0>26)fl+=`<line class="sfield" x1="${x0+8}" x2="${x1-8}" y1="${y}" y2="${y}" marker-end="url(#ar)"/>`}
+    const dl=er>1?`<rect x="${x0}" y="${top}" width="${gap}" height="${ph}" fill="var(--diel)" opacity="${Math.min(.55,.15+er/90)}"/>`:'';
+    sv.innerHTML=`<defs><marker id="ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L8 4L0 8z" fill="var(--energy)"/></marker></defs>
+      ${dl}
+      <rect x="${x0-9}" y="${top}" width="9" height="${ph}" rx="1" style="fill:var(--plate)"/>
+      <rect x="${x1}" y="${top}" width="9" height="${ph}" rx="1" style="fill:var(--plate)"/>
+      ${fl}${sym}
+      ${wire(`M${x0-4.5} ${bot} V270 H244`)}${wire(`M${x1+4.5} ${bot} V270 H276`)}
+      <line class="sb" x1="244" x2="244" y1="254" y2="286"/><line class="sb" x1="276" x2="276" y1="262" y2="278"/>
+      <text class="st" x="228" y="258" text-anchor="end">+</text><text class="st" x="292" y="296">cell, ${V.toFixed(1)} V</text>
+      <text class="sm" x="${x0-14}" y="${top-8}" text-anchor="end">+Q</text><text class="sm" x="${x1+14}" y="${top-8}">−Q</text>
+      <text class="sm" x="260" y="${top-8}" text-anchor="middle">${erName}</text>
+      <line class="sd" x1="${x0}" x2="${x1}" y1="${bot+12}" y2="${bot+12}"/><text class="sm" x="260" y="${bot+26}" text-anchor="middle">d = ${st.d.toFixed(1)} mm</text>`;
+    r.innerHTML=ro([['Capacitance C',eng(C,'F'),1],['Charge Q',eng(Q,'C')],['Field E = V/d',eng(E,'V m⁻¹')],['Energy ½CV²',eng(W,'J')]]);
+    wk.innerHTML=`<div>C = ε<sub>0</sub>ε<sub>r</sub>A / d = (8.85×10<sup>−12</sup>)(${er})(${sci(A)}) / (${sci(d)}) = <b>${eng(C,'F')}</b></div>
+      <div>Q = CV = (${eng(C,'F')})(${V.toFixed(1)} V) = <b>${eng(Q,'C')}</b></div>
+      <div>Try: double A (C doubles), halve d (C doubles), switch to ceramic (C × 50). Q follows C at fixed V.</div>`;
+  }
+  draw();
+}
+
+function sim2(root){
+  root.innerHTML=`<h3>Energy as the area under the V–Q graph</h3>
+  <p class="lead">Charging a capacitor means moving charge against a p.d. that grows as the charge builds up. The shaded triangle is the work done so far. The thin strip at the end is one step, ΔW = VΔQ.</p>
+  <div class="sgrid"><div class="canvasbox"><svg class="sv" viewBox="0 0 520 300" role="img" aria-label="Graph of p.d. against charge with shaded area"></svg></div><div class="ctls"></div></div>
+  <div class="ro"></div><div class="working"></div>`;
+  const k=$('.ctls',root),sv=$('.sv',root),r=$('.ro',root),wk=$('.working',root);
+  const st=controls(k,[
+    {k:'C',label:'Capacitance, C',min:1e-6,max:1e-2,log:1,val:1e-4,fmt:v=>eng(v,'F',2)},
+    {k:'V',label:'Final p.d., V',min:1,max:20,step:0.5,val:10,fmt:v=>v.toFixed(1)+' V'},
+    {k:'p',label:'Charging progress',min:0,max:100,step:1,val:60,fmt:v=>v+' %'}],()=>draw());
+  function draw(){
+    const C=st.C,V=st.V,p=st.p/100,Q=C*V,q=p*Q,v=p*V,W=.5*C*V*V,Wn=.5*q*v,Wsup=q*V;
+    const x0=78,y0=250,w=410,hh=215,qm=niceMax(Q*1.02),vm=niceMax(V*1.02);
+    const X=a=>x0+a/qm*w,Y=a=>y0-a/vm*hh;
+    let g='';
+    for(let i=0;i<=4;i++){
+      g+=`<line class="sk" x1="${x0}" x2="${x0+w}" y1="${Y(vm*i/4)}" y2="${Y(vm*i/4)}"/><line class="sk" y1="${y0}" y2="${y0-hh}" x1="${X(qm*i/4)}" x2="${X(qm*i/4)}"/>
+      <text class="sm" x="${x0-8}" y="${Y(vm*i/4)+4}" text-anchor="end">${fmtN(vm*i/4,2)}</text>
+      <text class="sm" x="${X(qm*i/4)}" y="${y0+16}" text-anchor="middle">${eng(qm*i/4,'C',2)}</text>`;
+    }
+    const dq=Q/18;
+    g+=`<polygon points="${X(0)},${Y(0)} ${X(q)},${Y(0)} ${X(q)},${Y(v)}" style="fill:var(--energy);opacity:.35"/>
+    <line x1="${X(0)}" y1="${Y(0)}" x2="${X(Q)}" y2="${Y(V)}" style="stroke:var(--ink);stroke-width:2.5"/>
+    <rect x="${X(q)}" y="${Y(v)}" width="${Math.max(2,dq/qm*w)}" height="${Y(0)-Y(v)}" style="fill:var(--accent-ink);opacity:.8"/>
+    <line class="sd" x1="${X(q)}" x2="${X(q)}" y1="${Y(0)}" y2="${Y(v)}"/><line class="sd" x1="${x0}" x2="${X(q)}" y1="${Y(v)}" y2="${Y(v)}"/>
+    <circle cx="${X(q)}" cy="${Y(v)}" r="5" style="fill:var(--ink)"/>
+    <text class="st" x="${x0+w/2}" y="${y0+38}" text-anchor="middle">charge Q / C</text>
+    <text class="st" transform="translate(20 ${y0-hh/2}) rotate(-90)" text-anchor="middle">p.d. V / V</text>
+    <text class="sq" x="${X(q)-8}" y="${Y(v)-10}" text-anchor="end">W = ½qv</text>`;
+    sv.innerHTML=g;
+    r.innerHTML=ro([['Charge so far q',eng(q,'C')],['p.d. so far v',v.toFixed(2)+' V'],['Stored ½qv',eng(Wn,'J'),1],['Supplied by cell qV',eng(Wsup,'J')],['Dissipated',eng(Wsup-Wn,'J')],['Full charge ½CV²',eng(W,'J')]]);
+    wk.innerHTML=`<div>Q = CV = ${eng(C,'F')} × ${V.toFixed(1)} V = <b>${eng(Q,'C')}</b></div>
+      <div>Energy stored so far = area = ½ × ${eng(q,'C')} × ${v.toFixed(2)} V = <b>${eng(Wn,'J')}</b></div>
+      <div>Energy supplied by cell = qV = ${eng(Wsup,'J')}. The stored energy is ${(Wsup>0?Wn/Wsup*100:0).toFixed(0)}% of this. At 100% progress it is exactly half.</div>`;
+  }
+  draw();
+}
+
+function sim3(root){
+  root.innerHTML=`<h3>Capacitors in parallel</h3>
+  <p class="lead">Every capacitor sees the same p.d. The charges add. Adjust the values and compare Q on each branch with the total.</p>
+  <div class="canvasbox"><svg class="sv" viewBox="0 0 520 230" role="img" aria-label="Three capacitors in parallel across a cell"></svg></div>
+  <div class="sgrid"><div class="ctls"></div><div class="bx"></div></div>
+  <div class="ro"></div><div class="working"></div>`;
+  const k=$('.ctls',root),sv=$('.sv',root),bx=$('.bx',root),r=$('.ro',root),wk=$('.working',root);
+  const f=v=>v.toFixed(1)+' µF';
+  const st=controls(k,[
+    {k:'c1',label:'C₁',min:0.5,max:10,step:0.5,val:2,fmt:f},{k:'c2',label:'C₂',min:0.5,max:10,step:0.5,val:3,fmt:f},
+    {k:'c3',label:'C₃',min:0.5,max:10,step:0.5,val:5,fmt:f},{k:'V',label:'Supply p.d., V',min:1,max:24,step:0.5,val:12,fmt:v=>v.toFixed(1)+' V'}],()=>draw());
+  function draw(){
+    const c=[st.c1,st.c2,st.c3],V=st.V,Ct=c[0]+c[1]+c[2],Qs=c.map(x=>x*V),Qt=Ct*V,W=.5*Ct*V*V*1e-6;
+    let s=wire('M60 40 V100')+wire('M60 112 V190')+wire('M60 40 H400')+wire('M60 190 H400')+cell(60,100).replace(/<text.*?<\/text>/,'');
+    s+=`<text class="st" x="26" y="112" text-anchor="end">${V.toFixed(1)} V</text>`;
+    [170,270,370].forEach((x,i)=>{
+      s+=wire(`M${x} 40 V100`)+wire(`M${x} 112 V190`)+capV(x,106)+
+        `<text class="st" x="${x+22}" y="86">C${SUB[i+1]} ${c[i].toFixed(1)} µF</text><text class="sq" x="${x+22}" y="106">Q ${eng(Qs[i]*1e-6,'C',3)}</text><text class="sm" x="${x+22}" y="124">V ${V.toFixed(1)} V</text>`;
+    });
+    s+=`<text class="sm" x="410" y="44">same V</text>`;
+    sv.innerHTML=s;
+    const cols=['var(--pos)','var(--neg)','var(--energy)'];
+    bx.innerHTML=bars([...c.map((_,i)=>({l:'Q'+SUB[i+1],v:Qs[i],max:Qt,c:cols[i],t:eng(Qs[i]*1e-6,'C')})),{l:'Q total',v:Qt,max:Qt,c:'var(--accent-ink)',t:eng(Qt*1e-6,'C')}]);
+    r.innerHTML=ro([['C total',eng(Ct*1e-6,'F'),1],['Q total',eng(Qt*1e-6,'C')],['Energy ½CV²',eng(W,'J')],['Largest single C',eng(Math.max(...c)*1e-6,'F')]]);
+    wk.innerHTML=`<div>C = C₁ + C₂ + C₃ = ${c.map(x=>x.toFixed(1)).join(' + ')} = <b>${Ct.toFixed(1)} µF</b></div>
+      <div>Q = CV: ${Qs.map(x=>x.toFixed(1)).join(' + ')} = <b>${Qt.toFixed(1)} µC</b> = (${Ct.toFixed(1)} µF)(${V.toFixed(1)} V) ✓</div>`;
+  }
+  draw();
+}
+
+function sim4(root){
+  root.innerHTML=`<h3>Capacitors in series</h3>
+  <p class="lead">Every capacitor carries the same charge. The supply p.d. is shared, and the smallest capacitor takes the largest share.</p>
+  <div class="canvasbox"><svg class="sv" viewBox="0 0 520 200" role="img" aria-label="Three capacitors in series with a cell"></svg></div>
+  <div class="sgrid"><div class="ctls"></div><div class="bx"></div></div>
+  <div class="ro"></div><div class="working"></div>`;
+  const k=$('.ctls',root),sv=$('.sv',root),bx=$('.bx',root),r=$('.ro',root),wk=$('.working',root);
+  const f=v=>v.toFixed(1)+' µF';
+  const st=controls(k,[
+    {k:'c1',label:'C₁',min:0.5,max:10,step:0.5,val:2,fmt:f},{k:'c2',label:'C₂',min:0.5,max:10,step:0.5,val:4,fmt:f},
+    {k:'c3',label:'C₃',min:0.5,max:10,step:0.5,val:8,fmt:f},{k:'V',label:'Supply p.d., V',min:1,max:24,step:0.5,val:14,fmt:v=>v.toFixed(1)+' V'}],()=>draw());
+  function draw(){
+    const c=[st.c1,st.c2,st.c3],V=st.V,inv=c.reduce((a,x)=>a+1/x,0),Ct=1/inv,Q=Ct*V,Vs=c.map(x=>Q/x),W=.5*Ct*V*V*1e-6;
+    let s=wire('M60 60 V94')+wire('M60 106 V160')+wire('M60 160 H460')+wire('M460 60 V160')+wire('M60 60 H114')+wire('M126 60 H224')+wire('M236 60 H334')+wire('M346 60 H460');
+    s+=`<line class="sb" x1="44" x2="76" y1="94" y2="94"/><line class="sb" x1="51" x2="69" y1="106" y2="106"/><text class="st" x="84" y="92">+</text><text class="st" x="84" y="124">${V.toFixed(1)} V</text>`;
+    [120,230,340].forEach((x,i)=>{
+      s+=capH(x,60)+`<text class="st" x="${x}" y="30" text-anchor="middle">C${SUB[i+1]} ${c[i].toFixed(1)} µF</text><text class="sq" x="${x}" y="92" text-anchor="middle">Q ${eng(Q*1e-6,'C')}</text><text class="sm" x="${x}" y="108" text-anchor="middle">V ${Vs[i].toFixed(2)} V</text>`;
+    });
+    sv.innerHTML=s;
+    const cols=['var(--pos)','var(--neg)','var(--energy)'];
+    bx.innerHTML=bars([...c.map((_,i)=>({l:'V'+SUB[i+1],v:Vs[i],max:V,c:cols[i],t:Vs[i].toFixed(2)+' V'})),{l:'V total',v:V,max:V,c:'var(--accent-ink)',t:V.toFixed(2)+' V'}]);
+    r.innerHTML=ro([['C total',eng(Ct*1e-6,'F'),1],['Q on each',eng(Q*1e-6,'C')],['Energy ½CV²',eng(W,'J')],['Smallest single C',eng(Math.min(...c)*1e-6,'F')]]);
+    wk.innerHTML=`<div>1/C = ${c.map(x=>'1/'+x.toFixed(1)).join(' + ')} = ${inv.toFixed(4)} µF⁻¹ ⇒ <b>C = ${Ct.toFixed(3)} µF</b></div>
+      <div>Q = CV = ${Ct.toFixed(3)} × ${V.toFixed(1)} = <b>${Q.toFixed(2)} µC</b> on every capacitor</div>
+      <div>V = Q/C: ${Vs.map(x=>x.toFixed(2)).join(' + ')} = ${Vs.reduce((a,b)=>a+b,0).toFixed(2)} V ✓</div>`;
+  }
+  draw();
+}
+
+function sim5(root){
+  root.innerHTML=`<h3>Resistors and capacitors side by side</h3>
+  <p class="lead">The same two numbers are used as resistances (in Ω) and as capacitances (in µF). Switch between series and parallel and see which rule gives the larger total.</p>
+  <div class="sgrid"><div class="ctls"></div><div class="bx"></div></div>
+  <div class="cmp"></div><div class="tblw"></div>`;
+  let mode='series';
+  const k=$('.ctls',root),bx=$('.bx',root),cmp=$('.cmp',root),tb=$('.tblw',root);
+  const st=controls(k,[{k:'a',label:'Value 1 (R₁ in Ω, C₁ in µF)',min:1,max:100,step:1,val:30,fmt:v=>v},{k:'b',label:'Value 2 (R₂ in Ω, C₂ in µF)',min:1,max:100,step:1,val:60,fmt:v=>v}],()=>draw());
+  segment(k,'Connection',[['series','Series'],['parallel','Parallel']],'series',v=>{mode=v;draw()});
+  function draw(){
+    const a=st.a,b=st.b,sum=a+b,rec=a*b/(a+b),ser=mode==='series';
+    const R=ser?sum:rec,C=ser?rec:sum;
+    const max=a+b;
+    bx.innerHTML=bars([{l:'R₁',v:a,max,c:'var(--muted)',t:a+' Ω'},{l:'R₂',v:b,max,c:'var(--muted)',t:b+' Ω'},{l:'R total',v:R,max,c:'var(--energy)',t:fmtN(R)+' Ω'},
+      {l:'C₁',v:a,max,c:'var(--muted)',t:a+' µF'},{l:'C₂',v:b,max,c:'var(--muted)',t:b+' µF'},{l:'C total',v:C,max,c:'var(--neg)',t:fmtN(C)+' µF'}]);
+    cmp.innerHTML=`<div><h4>Resistors in ${mode}</h4><div class="big">${fmtN(R)} Ω</div>
+      <div class="rule">${ser?'R = R₁ + R₂':'1/R = 1/R₁ + 1/R₂'}</div><div>${ser?'Same current I; p.d.s add.':'Same p.d. V; currents add.'} Total is ${ser?'larger than the largest':'smaller than the smallest'}.</div></div>
+      <div><h4>Capacitors in ${mode}</h4><div class="big">${fmtN(C)} µF</div>
+      <div class="rule">${ser?'1/C = 1/C₁ + 1/C₂':'C = C₁ + C₂'}</div><div>${ser?'Same charge Q; p.d.s add.':'Same p.d. V; charges add.'} Total is ${ser?'smaller than the smallest':'larger than the largest'}.</div></div>`;
+    tb.innerHTML=`<table><thead><tr><th>Connection</th><th>Resistors</th><th>Capacitors</th></tr></thead><tbody>
+      <tr><td>Series</td><td${ser?' class="hl"':''}>add R directly</td><td${ser?' class="hl"':''}>add 1/C</td></tr>
+      <tr><td>Parallel</td><td${!ser?' class="hl"':''}>add 1/R</td><td${!ser?' class="hl"':''}>add C directly</td></tr></tbody></table>`;
+  }
+  draw();
+}
+
+function sim6(root){
+  root.innerHTML=`<h3>Capacitor network solver</h3>
+  <p class="lead">Choose a network, set the values and read the solution line by line. Check that the p.d.s along a series path add to the supply and that the charges on parallel branches add to the charge they replaced.</p>
+  <div class="sgrid"><div class="canvasbox"><svg class="sv" viewBox="0 0 520 215" role="img" aria-label="Capacitor network"></svg></div><div class="ctls"></div></div>
+  <div class="tblw tb"></div><div class="working"></div>`;
+  let net='A';
+  const k=$('.ctls',root),sv=$('.sv',root),tb=$('.tb',root),wk=$('.working',root);
+  segment(k,'Network',[['A','C₁ in series with (C₂ ∥ C₃)'],['B','C₁ ∥ (C₂ in series with C₃)']],'A',v=>{net=v;draw()});
+  const f=v=>v.toFixed(1)+' µF';
+  const st=controls(k,[{k:'c1',label:'C₁',min:1,max:12,step:0.5,val:6,fmt:f},{k:'c2',label:'C₂',min:1,max:12,step:0.5,val:3,fmt:f},{k:'c3',label:'C₃',min:1,max:12,step:0.5,val:6,fmt:f},{k:'V',label:'Supply p.d., V',min:1,max:24,step:0.5,val:15,fmt:v=>v.toFixed(1)+' V'}],()=>draw());
+  function draw(){
+    const {c1,c2,c3,V}=st;let rows,steps,Ceq,svg='';
+    const bat=wire('M60 40 V95')+wire('M60 107 V180')+`<line class="sb" x1="44" x2="76" y1="95" y2="95"/><line class="sb" x1="51" x2="69" y1="107" y2="107"/><text class="st" x="84" y="104">${V.toFixed(1)} V</text>`;
+    const lab=(x,y,i,a,txt)=>`<text class="st" x="${x}" y="${y}" text-anchor="${a}">C${SUB[i]}</text><text class="sm" x="${x}" y="${y+15}" text-anchor="${a}">${txt}</text>`;
+    if(net==='A'){
+      const c23=c2+c3;Ceq=c1*c23/(c1+c23);const Q=Ceq*V,V1=Q/c1,V23=V-V1,Q2=c2*V23,Q3=c3*V23;
+      rows=[['C₁',c1,Q,V1],['C₂',c2,Q2,V23],['C₃',c3,Q3,V23]];
+      steps=[`Parallel pair: C₂₃ = ${c2.toFixed(1)} + ${c3.toFixed(1)} = <b>${c23.toFixed(1)} µF</b>`,
+        `Series: C = (${c1.toFixed(1)} × ${c23.toFixed(1)}) / (${c1.toFixed(1)} + ${c23.toFixed(1)}) = <b>${Ceq.toFixed(3)} µF</b>`,
+        `Total charge: Q = CV = ${Ceq.toFixed(3)} × ${V.toFixed(1)} = <b>${Q.toFixed(2)} µC</b>, which is also the charge on C₁`,
+        `V₁ = Q / C₁ = ${V1.toFixed(2)} V, so V₂₃ = ${V.toFixed(1)} − ${V1.toFixed(2)} = <b>${V23.toFixed(2)} V</b>`,
+        `Q₂ = C₂V₂₃ = ${Q2.toFixed(2)} µC, Q₃ = C₃V₂₃ = ${Q3.toFixed(2)} µC. Check: Q₂ + Q₃ = ${(Q2+Q3).toFixed(2)} µC = Q ✓`];
+      svg=bat+wire('M60 40 H144')+wire('M156 40 H330')+capH(150,40)+wire('M250 40 V104')+wire('M250 116 V180')+capV(250,110)+wire('M330 40 V104')+wire('M330 116 V180')+capV(330,110)+wire('M60 180 H330')
+        +lab(150,72,1,'middle',`${Q.toFixed(1)} µC · ${V1.toFixed(1)} V`)+lab(232,108,2,'end',`${Q2.toFixed(1)} µC`)+lab(348,108,3,'start',`${Q3.toFixed(1)} µC`);
+    }else{
+      const c23=c2*c3/(c2+c3);Ceq=c1+c23;const Q1=c1*V,Q23=c23*V,V2=Q23/c2,V3=Q23/c3;
+      rows=[['C₁',c1,Q1,V],['C₂',c2,Q23,V2],['C₃',c3,Q23,V3]];
+      steps=[`Series pair: C₂₃ = (${c2.toFixed(1)} × ${c3.toFixed(1)}) / (${c2.toFixed(1)} + ${c3.toFixed(1)}) = <b>${c23.toFixed(3)} µF</b>`,
+        `Parallel: C = ${c1.toFixed(1)} + ${c23.toFixed(3)} = <b>${Ceq.toFixed(3)} µF</b>`,
+        `C₁ has the full supply p.d.: Q₁ = C₁V = <b>${Q1.toFixed(2)} µC</b>`,
+        `The series branch also has V across it: Q₂₃ = C₂₃V = <b>${Q23.toFixed(2)} µC</b>, the same on C₂ and C₃`,
+        `V₂ = Q₂₃ / C₂ = ${V2.toFixed(2)} V, V₃ = Q₂₃ / C₃ = ${V3.toFixed(2)} V. Check: ${V2.toFixed(2)} + ${V3.toFixed(2)} = ${(V2+V3).toFixed(2)} V = V ✓`];
+      svg=bat+wire('M60 40 H380')+wire('M60 180 H380')+wire('M200 40 V104')+wire('M200 116 V180')+capV(200,110)
+        +wire('M330 40 V79')+capV(330,85)+wire('M330 91 V134')+capV(330,140)+wire('M330 146 V180')+wire('M380 40 V180')
+        +lab(218,100,1,'start',`${Q1.toFixed(1)} µC · ${V.toFixed(1)} V`)+lab(348,82,2,'start',`${Q23.toFixed(1)} µC · ${V2.toFixed(1)} V`)+lab(348,137,3,'start',`${Q23.toFixed(1)} µC · ${V3.toFixed(1)} V`);
+    }
+    sv.innerHTML=svg;
+    let Wt=0;
+    tb.innerHTML=`<table><thead><tr><th>Capacitor</th><th>C / µF</th><th>Q / µC</th><th>V / V</th><th>Energy / µJ</th></tr></thead><tbody>${rows.map(r=>{const w=.5*r[2]*r[3];Wt+=w;return `<tr><td>${r[0]}</td><td class="num">${r[1].toFixed(1)}</td><td class="num">${r[2].toFixed(2)}</td><td class="num">${r[3].toFixed(2)}</td><td class="num">${w.toFixed(1)}</td></tr>`}).join('')}
+      <tr><td><b>Network</b></td><td class="num"><b>${Ceq.toFixed(3)}</b></td><td class="num"><b>${(Ceq*V).toFixed(2)}</b></td><td class="num"><b>${V.toFixed(2)}</b></td><td class="num"><b>${(.5*Ceq*V*V).toFixed(1)}</b></td></tr></tbody></table>`;
+    wk.innerHTML=steps.map(s=>`<div>${s}</div>`).join('')+`<div>Energy check: ΣW of the three capacitors = ${Wt.toFixed(1)} µJ = ½CV² of the network = ${(.5*Ceq*V*V).toFixed(1)} µJ ✓</div>`;
+  }
+  draw();
+}
+
+function sim7(root){
+  root.innerHTML=`<h3>RC charge and discharge lab</h3>
+  <p class="lead">Choose charging or discharging, select the quantity to plot and move the time slider or press Play. The dashed lines mark one time constant, τ = RC. In the ln view the decaying quantity becomes a straight line with gradient −1/RC.</p>
+  <div class="sgrid"><div class="canvasbox"><canvas class="cv" width="640" height="360" role="img" aria-label="Graph of an RC charge or discharge curve"></canvas></div><div class="ctls"></div></div>
+  <div class="bx"></div><div class="ro"></div>`;
+  const k=$('.ctls',root),cv=$('.cv',root),ro_=$('.ro',root),bx=$('.bx',root);
+  let mode='discharge',qty='V',tf=0.2,playing=false,raf=0,last=0;
+  const st=controls(k,[
+    {k:'R',label:'Resistance, R',min:1e3,max:1e5,log:1,val:1e4,fmt:v=>eng(v,'Ω',2)},
+    {k:'C',label:'Capacitance, C',min:1e-5,max:1e-3,log:1,val:4.7e-4,fmt:v=>eng(v,'F',2)},
+    {k:'V0',label:'Supply / initial p.d., V₀',min:1,max:12,step:0.5,val:9,fmt:v=>v.toFixed(1)+' V'}],()=>draw());
+  const mseg=segment(k,'Process',[['discharge','Discharge'],['charge','Charge']],'discharge',v=>{mode=v;draw()});
+  const qseg=segment(k,'Plot',[['V','V'],['I','I'],['Q','Q'],['ln','ln(y) plot']],'V',v=>{qty=v;draw()});
+  const tw=h(`<div class="ctl"><label for="tsl"><span>Time, t</span><output id="tout"></output></label><input id="tsl" type="range" min="0" max="500" step="1" value="100"></div>`);
+  k.appendChild(tw);const tsl=$('input',tw),tout=$('output',tw);
+  const pl=h('<div class="go"><button type="button" class="btn" id="play">Play</button><button type="button" class="btn ghost" id="rst">Reset</button></div>');
+  k.appendChild(pl);const pb=$('#play',pl);
+  tsl.addEventListener('input',()=>{tf=tsl.value/500;stop();draw()});
+  function stop(){playing=false;cancelAnimationFrame(raf);pb.textContent='Play'}
+  pb.addEventListener('click',()=>{
+    if(playing){stop();return}
+    if(tf>=1)tf=0;playing=true;pb.textContent='Pause';last=performance.now();
+    const step=now=>{if(!playing)return;const dt=(now-last)/1000;last=now;tf=Math.min(1,tf+dt/6);tsl.value=Math.round(tf*500);draw();if(tf>=1){stop();return}raf=requestAnimationFrame(step)};
+    raf=requestAnimationFrame(step);
+  });
+  $('#rst',pl).addEventListener('click',()=>{stop();tf=0;tsl.value=0;draw()});
+  function model(t){
+    const {R,C,V0}=st,tau=R*C,e=Math.exp(-t/tau),dis=mode==='discharge';
+    return {tau,V:dis?V0*e:V0*(1-e),I:V0/R*e,Q:dis?C*V0*e:C*V0*(1-e),e};
+  }
+  function draw(){
+    const {R,C,V0}=st,tau=R*C,t=tf*5*tau,m=model(t),dis=mode==='discharge';
+    tout.textContent=eng(t,'s',3)+'  ('+(t/tau).toFixed(2)+' τ)';
+    const I0=V0/R,Q0=C*V0;
+    // readouts
+    const grad=-1/tau;
+    ro_.innerHTML=ro([['Time constant τ = RC',eng(tau,'s'),1],['Half-life RC ln2',eng(tau*Math.LN2,'s')],['p.d. across C',m.V.toFixed(2)+' V'],['Current I',eng(m.I,'A')],['Charge Q',eng(m.Q,'C')],
+      [qty==='ln'?'Gradient −1/RC':'Initial current V₀/R',qty==='ln'?fmtN(grad)+' s⁻¹':eng(I0,'A')]]);
+    bx.innerHTML=bars([{l:'Q / Q₀',v:m.Q,max:Q0,c:'var(--pos)',t:(m.Q/Q0*100).toFixed(1)+' %'},{l:'I / I₀',v:m.I,max:I0,c:'var(--energy)',t:(m.I/I0*100).toFixed(1)+' %'}]);
+    // canvas
+    const dpr=window.devicePixelRatio||1,W=Math.max(300,cv.getBoundingClientRect().width||640),H=Math.round(W*0.58);
+    cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);
+    const g=cv.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,W,H);
+    const ink=css('--ink'),mut=css('--muted'),line=css('--line'),acc=css('--accent-ink'),en=css('--energy'),pos=css('--pos'),neg=css('--neg');
+    const L=W<420?56:70,Rr=16,T=20,B=44,pw=W-L-Rr,ph=H-T-B;
+    let fn,ymin=0,ymax,yl,ylab,fmtY;
+    if(qty==='ln'){
+      const y0=dis?Math.log(V0):Math.log(I0*1000);
+      ymax=Math.ceil(y0+0.3);ymin=ymax-7;fn=tt=>y0-tt/tau;ylab=dis?'ln (V / V)':'ln (I / mA)';fmtY=v=>String(v);
+    }else if(qty==='V'){ymax=V0;fn=tt=>model(tt).V;ylab='p.d. across C / V';fmtY=v=>fmtN(v,2)}
+    else if(qty==='I'){ymax=I0;fn=tt=>model(tt).I;ylab='current / '+(I0<1e-3?'µA':'mA');const sc=I0<1e-3?1e6:1e3;fmtY=v=>fmtN(v*sc,2);}
+    else{ymax=Q0;fn=tt=>model(tt).Q;ylab='charge / '+(Q0<1e-3?'µC':'mC');const sc=Q0<1e-3?1e6:1e3;fmtY=v=>fmtN(v*sc,2)}
+    const X=tt=>L+tt/(5*tau)*pw,Y=v=>T+ph-(v-ymin)/(ymax-ymin)*ph;
+    g.font='12px "JetBrains Mono",monospace';g.lineWidth=1;
+    for(let i=0;i<=5;i++){ // vertical grid
+      g.strokeStyle=line;g.beginPath();g.moveTo(X(i*tau),T);g.lineTo(X(i*tau),T+ph);g.stroke();
+      g.fillStyle=mut;g.textAlign='center';g.fillText(i===0?'0':(i===1?'τ':i+'τ'),X(i*tau),T+ph+16);
+    }
+    const ny=qty==='ln'?7:5;
+    for(let i=0;i<=ny;i++){
+      const v=ymin+(ymax-ymin)*i/ny;g.strokeStyle=line;g.beginPath();g.moveTo(L,Y(v));g.lineTo(L+pw,Y(v));g.stroke();
+      g.fillStyle=mut;g.textAlign='right';g.fillText(fmtY(qty==='ln'?Math.round(v):v),L-6,Y(v)+4);
+    }
+    g.fillStyle=ink;g.textAlign='center';g.font='600 13px "Source Sans 3",sans-serif';
+    g.fillText('time t  (τ = '+eng(tau,'s')+')',L+pw/2,H-8);
+    g.save();g.translate(14,T+ph/2);g.rotate(-Math.PI/2);g.fillText(ylab,0,0);g.restore();
+    // curve
+    const col=qty==='V'?neg:qty==='I'?en:qty==='Q'?pos:acc;
+    g.strokeStyle=col;g.lineWidth=3;g.beginPath();
+    for(let i=0;i<=240;i++){const tt=i/240*5*tau;const x=X(tt),y=Y(fn(tt));i?g.lineTo(x,y):g.moveTo(x,y)}
+    g.stroke();
+    // marker at tau
+    if(qty!=='ln'){
+      const vt=fn(tau);g.setLineDash([5,4]);g.strokeStyle=mut;g.lineWidth=1.2;
+      g.beginPath();g.moveTo(X(tau),T+ph);g.lineTo(X(tau),Y(vt));g.lineTo(L,Y(vt));g.stroke();g.setLineDash([]);
+      g.fillStyle=ink;g.beginPath();g.arc(X(tau),Y(vt),4,0,7);g.fill();
+      const rising=(qty==='V'||qty==='Q')&&!dis;
+      g.fillStyle=mut;g.textAlign='left';g.font='600 12px "JetBrains Mono",monospace';
+      g.fillText(rising?'63.2% at τ':'36.8% at τ',X(tau)+8,Y(vt)-8);
+    }
+    // cursor
+    g.strokeStyle=ink;g.lineWidth=1.5;g.beginPath();g.moveTo(X(t),T);g.lineTo(X(t),T+ph);g.stroke();
+    g.fillStyle=ink;g.beginPath();g.arc(X(t),Y(fn(t)),5.5,0,7);g.fill();
+    g.fillStyle=css('--surface');g.beginPath();g.arc(X(t),Y(fn(t)),2.2,0,7);g.fill();
+  }
+  const onResize=()=>draw();
+  window.addEventListener('resize',onResize);redraws.add(draw);
+  const prev=cleanup;cleanup=()=>{prev();stop();window.removeEventListener('resize',onResize);redraws.delete(draw)};
+  draw();
+}
+const SIMS={sim1,sim2,sim3,sim4,sim5,sim6,sim7};
+
+/* =============================================================== QUESTIONS */
+function qStatus(id){return store['q-'+id]}
+function setQ(id,v){store['q-'+id]=v;save();updateProgress()}
+function renderQs(root,qs,key,onScore){
+  const head=h(`<div class="qhead"><span class="score" aria-live="polite"></span><button type="button" class="btn ghost">Reset this set</button></div>`);
+  const list=h('<div class="qs"></div>');
+  root.append(head,list);
+  const score=()=>{const n=qs.filter((_,i)=>qStatus(key+'-'+i)==='right').length;$('.score',head).textContent=`${n} / ${qs.length} answered correctly`;};
+  $('button',head).addEventListener('click',()=>{qs.forEach((_,i)=>{delete store['q-'+key+'-'+i]});save();updateProgress();list.innerHTML='';build();});
+  function build(){
+    qs.forEach((q,i)=>{
+      const id=key+'-'+i;
+      const card=h(`<article class="q"><div class="qn">Question ${i+1} · ${q.t==='mcq'?'multiple choice':'calculation'}</div><p class="qt">${q.q}</p><div class="qa"></div><div class="fbx"></div></article>`);
+      const qa=$('.qa',card),fbx=$('.fbx',card);
+      const mark=s=>{card.dataset.s=s||''};
+      mark(qStatus(id)==='right'?'right':'');
+      if(q.t==='mcq'){
+        const box=h('<div class="opts" role="group"></div>');
+        q.opts.forEach((o,j)=>{
+          const b=h(`<button type="button" class="opt"><b>${'ABCD'[j]}</b><span>${o}</span></button>`);
+          b.addEventListener('click',()=>{
+            if(box.dataset.locked==='1')return;
+            box.dataset.locked='1';const ok=j===q.ans;
+            b.classList.add(ok?'right':'wrong');if(!ok)$$('.opt',box)[q.ans].classList.add('right');
+            const prev=qStatus(id);setQ(id,ok?'right':(prev==='right'?'right':'wrong'));mark(ok?'right':'wrong');score();
+            fbx.innerHTML='';
+            const fb=h(`<div class="fb ${ok?'right':'wrong'}"><div><b>${ok?'Correct.':'Not quite.'}</b> ${q.why}</div><div class="go"><button type="button" class="btn ghost">Try again</button></div></div>`);
+            $('button',fb).addEventListener('click',()=>{box.dataset.locked='0';$$('.opt',box).forEach(x=>x.classList.remove('right','wrong'));fbx.innerHTML='';mark(qStatus(id)==='right'?'right':'')});
+            fbx.appendChild(fb);
+          });
+          box.appendChild(b);
+        });
+        qa.appendChild(box);
+      }else{
+        const row=h(`<div class="ans"><input type="text" inputmode="decimal" autocomplete="off" aria-label="Your answer in ${q.unit}" placeholder="answer"><span class="unit">${q.unit}</span><button type="button" class="btn">Check</button><button type="button" class="btn ghost hintb">Hint</button><button type="button" class="btn ghost solb">Worked solution</button></div>`);
+        const inp=$('input',row);
+        const showSol=(lead,cls)=>{
+          fbx.innerHTML='';
+          fbx.appendChild(h(`<div class="fb ${cls}"><div>${lead}</div><div class="sol">${q.sol.map(s=>`<div>${s}</div>`).join('')}</div><div><b>Answer: ${fmtN(q.ans)} ${q.unit}</b></div></div>`));
+        };
+        const check=()=>{
+          const v=parseFloat(String(inp.value).replace(',','.').trim());
+          if(!isFinite(v)){fbx.innerHTML='';fbx.appendChild(h('<div class="fb info">Enter a number, for example 4.7 or 3e-3.</div>'));return}
+          const tol=q.tol||0.03,ok=Math.abs(v-q.ans)<=Math.abs(q.ans)*tol;
+          const prev=qStatus(id);setQ(id,ok?'right':(prev==='right'?'right':'wrong'));mark(ok?'right':'wrong');score();
+          if(ok)showSol('<b>Correct.</b> Here is the full working to compare with yours.','right');
+          else{fbx.innerHTML='';fbx.appendChild(h(`<div class="fb wrong"><div><b>Not quite.</b> Check units and prefixes (your answer is in ${q.unit}). Hint: ${q.hint}</div></div>`))}
+        };
+        $('.btn',row).addEventListener('click',check);
+        inp.addEventListener('keydown',e=>{if(e.key==='Enter')check()});
+        $('.hintb',row).addEventListener('click',()=>{fbx.innerHTML='';fbx.appendChild(h(`<div class="fb info"><b>Hint:</b> ${q.hint}</div>`))});
+        $('.solb',row).addEventListener('click',()=>showSol('<b>Worked solution</b>','info'));
+        qa.appendChild(row);
+      }
+      list.appendChild(card);
+    });
+    score();
+  }
+  build();
+}
+
+/* =============================================================== PROGRESS + NAV */
+const ALLQ=[...TOPICS.flatMap(t=>t.qs.map((_,i)=>t.id+'-'+i)),...MIXED.map((_,i)=>'mix-'+i)];
+function topicState(t){const ids=t.qs.map((_,i)=>'q-'+t.id+'-'+i);const n=ids.filter(i=>store[i]==='right').length;return n===ids.length?'done':n>0?'part':''}
+function updateProgress(){
+  const n=ALLQ.filter(i=>store['q-'+i]==='right').length,pc=Math.round(n/ALLQ.length*100);
+  $('#pfill').style.width=pc+'%';$('#ptext').textContent=n+'/'+ALLQ.length+' · '+pc+'%';
+  $$('#nav .dot').forEach(d=>{const t=TOPICS.find(x=>x.id===d.dataset.id);if(t)d.className='dot '+topicState(t)});
+}
+let current='23.1',tab='learn';
+function buildNav(){
+  const nav=$('#nav');nav.innerHTML='';
+  TOPICS.forEach(t=>{
+    const b=h(`<button type="button" data-id="${t.id}"><span class="no">${t.id}</span><span>${t.title}</span><span class="dot" data-id="${t.id}"></span></button>`);
+    b.addEventListener('click',()=>go(t.id));nav.appendChild(b);
+  });
+  const s=h('<button type="button" data-id="summary"><span class="no">★</span><span>SUMMARY</span></button>');
+  s.addEventListener('click',()=>go('summary'));nav.appendChild(s);
+}
+function go(id,newTab){
+  current=id;if(newTab)tab=newTab;
+  render();window.scrollTo({top:0});
+  try{history.replaceState(null,'','#'+id)}catch(e){}
+}
+function render(){
+  cleanup();cleanup=()=>{};
+  $$('#nav button').forEach(b=>b.setAttribute('aria-current',String(b.dataset.id===current)));
+  const main=$('#main');main.innerHTML='';
+  if(current==='summary')return renderSummary(main);
+  const i=TOPICS.findIndex(t=>t.id===current),t=TOPICS[i];
+  const wrap=h(`<div class="wrap"><div class="kick">Topic ${t.id}</div><h2 class="ttl">${t.title}</h2>
+    <div class="obj"><h4>Learning objectives</h4><ul>${t.obj.map(o=>`<li>${o}</li>`).join('')}</ul></div>
+    <div class="tabs" role="tablist"></div><div class="panel" role="tabpanel"></div><div class="go pager"></div></div>`);
+  const tabs=$('.tabs',wrap),panel=$('.panel',wrap);
+  [['learn','Learn'],['sim','Simulation'],['practice','Practice ('+t.qs.length+')']].forEach(([k,l])=>{
+    const b=h(`<button type="button" role="tab" aria-selected="${k===tab}">${l}</button>`);
+    b.addEventListener('click',()=>{tab=k;render()});tabs.appendChild(b);
+  });
+  if(tab==='learn'){panel.innerHTML=t.learn;
+    panel.appendChild(h(`<div class="go"><button type="button" class="btn">Try the simulation</button></div>`)).firstElementChild.addEventListener('click',()=>{tab='sim';render();window.scrollTo({top:0})});
+  }
+  else if(tab==='sim'){const s=h('<section class="sim"></section>');panel.appendChild(s);SIMS[t.sim](s);
+    panel.appendChild(h(`<div class="go"><button type="button" class="btn">Practise this topic</button></div>`)).firstElementChild.addEventListener('click',()=>{tab='practice';render();window.scrollTo({top:0})});}
+  else{renderQs(panel,t.qs,t.id);}
+  const pg=$('.pager',wrap);
+  if(TOPICS[i-1]){const b=h(`<button type="button" class="btn ghost">← ${TOPICS[i-1].id} ${TOPICS[i-1].title}</button>`);b.addEventListener('click',()=>{tab='learn';go(TOPICS[i-1].id)});pg.appendChild(b)}
+  const nx=TOPICS[i+1];const b=h(`<button type="button" class="btn ghost">${nx?nx.id+' '+nx.title:'Summary'} →</button>`);
+  b.addEventListener('click',()=>{tab='learn';go(nx?nx.id:'summary')});pg.appendChild(b);
+  main.appendChild(wrap);updateProgress();
+}
+function renderSummary(main){
+  const wrap=h(`<div class="wrap"><div class="kick">Chapter 23</div><h2 class="ttl">Summary</h2><div class="prose wide" id="sum"></div></div>`);
+  const sum=$('#sum',wrap);
+  sum.innerHTML=`<h3>Key equations</h3>
+  <div class="tblw"><table><thead><tr><th>Quantity</th><th>Equation</th><th>Notes</th></tr></thead><tbody>${SUMMARY_EQS.map(r=>`<tr><td>${r[0]}</td><td><span class="u">${r[1]}</span></td><td>${r[2]}</td></tr>`).join('')}</tbody></table></div>
+  <h3>Self-assessment</h3><p>Tick each statement when you can do it without notes. Your ticks are saved in this browser.</p><div class="chk" id="chk"></div>
+  <h3>Typical mistakes in examinations</h3>
+  <div class="tblw"><table><thead><tr><th>Mistake</th><th>Correction</th></tr></thead><tbody>${MISTAKES.map(r=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td></tr>`).join('')}</tbody></table></div>
+  <h3>Progress by topic</h3><div id="pt"></div>
+  <h3>Mixed exam-style practice</h3><div id="mix"></div>`;
+  const chk=$('#chk',sum);
+  CHECKLIST.forEach((c,i)=>{
+    const l=h(`<label><input type="checkbox"><span>${c}</span></label>`);const cb=$('input',l);cb.checked=!!store['c-'+i];
+    cb.addEventListener('change',()=>{store['c-'+i]=cb.checked;save()});chk.appendChild(l);
+  });
+  $('#pt',sum).innerHTML=bars(TOPICS.map(t=>{const n=t.qs.filter((_,i)=>store['q-'+t.id+'-'+i]==='right').length;return {l:t.id,v:n,max:t.qs.length,c:'var(--accent-ink)',t:n+' / '+t.qs.length}}));
+  renderQs($('#mix',sum),MIXED,'mix');
+  main.appendChild(wrap);updateProgress();
+}
+buildNav();
+const hash=(location.hash||'').replace('#','');
+if(hash==='summary'||TOPICS.some(t=>t.id===hash))current=hash;
+render();
+</script>
+
+</body></html>
